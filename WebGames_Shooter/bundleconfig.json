@@ -1,0 +1,15 @@
+[
+  {
+    "outputFileName": "js/main.js",
+    "inputFiles": 
+    [
+      "js/jquery-2.2.2.js",
+      "js/scenemanager.js",
+      "js/explosions.js",
+      "js/gameobject.js",
+      "js/input.js",
+      "js/scene.js",
+      "js/vector2.js"
+    ]
+  }
+]
