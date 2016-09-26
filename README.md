@@ -1,2 +1,2 @@
-# WebGames_Shooter
-Shooter game for the Web Games course
+# Web Game Engine
+Develop optimized games for the web.
