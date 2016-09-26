@@ -9841,143 +9841,150 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: engine.js
-@date: 24/03/2016
-@author: Emmanuel Vaccaro
-@brief: Updates the game, physics & time
-===============================================*/
-
-// Setup frames per second (cap)
-var FPS = 60;
-var debugging = true;
-
-// Obtain the GameCanvas from the document
-var canvas = document.getElementById('GameCanvas');
-// Get the '2d' context from the canvas for drawing
-var context = canvas.getContext('2d');
-
-// List of gameobjects in the scene
-var gameObjects = [];
-var prevTime = Date.now();
-var currTime = 0;
-var deltaTime = 0;
-
-// Define the clear color
-var CLEAR_COLOR = "white";
-var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
-
-// Updates all elements in the game
-function Update()
+function BaseShape()
 {
-    // Calculate deltaTime
-    currTime = Date.now();
-    deltaTime = (currTime - prevTime) / 1000;
-    prevTime = currTime;
+    var baseShape =
+    {
+        position: new Vector2(),
+        color: "black",
+        isFilled: false,
+        lineWidth: 1
+    }
+    return baseShape;
+}
 
-    // Automatically scale the canvas dimensions
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
-
-    HandleCollisions();
-
-    // Loop through all game objects and call update on each
-    for (var i = 0; i < gameObjects.length; i++)
+function Circle()
 {
-        gameObjects[i].update(deltaTime);
+    var circle = new BaseShape();
+    circle.radius = 1;
+    return circle;
+}
+
+function Box()
+{
+    var box = new BaseShape();
+    box.size = new Vector2();
+    return box;
+}
+
+function Gizmos() { }
+
+Gizmos.boxes = [];
+Gizmos.circles = [];
+
+Gizmos.Draw = function ()
+{
+    if (debugging) {
+        this.DrawBoxes();
+        this.DrawCircles();
     }
 }
-function HandleCollisions()
+
+Gizmos.DrawBoxes = function ()
 {
-    for (var x = 0; x < gameObjects.length; x++)
+    for (var i = 0; i < this.boxes.length; i++) {
+        var box = this.boxes[i];
+        // Use this function to draw elements
+        context.save();
+        context.translate(box.position.x, box.position.y);
+
+        context.rotate(box.rotation);
+
+        context.lineWidth = box.lineWidth;
+        context.fillStyle = box.color;
+        context.strokeStyle = box.color;
+
+        context.beginPath();
+        context.rect(-box.size.x / 2, -box.size.x / 2, box.size.x, box.size.y);
+        context.closePath();
+
+        if (box.isFilled) {
+            context.fill();
+        } else {
+            context.stroke();
+        }
+
+        context.restore();
+    }
+    this.boxes = [];
+}
+
+Gizmos.DrawCircles = function ()
 {
-        for (var y = 0; y < gameObjects.length; y++)
-{
-            var colA = gameObjects[x];
-            var colB = gameObjects[y];
-            if (!Object.is(colA, colB) &&
-                colA.isVisible && colB.isVisible)
-{
-                if (Collides(colA, colB))
-{
-                    // Collision is touching
-                    colA.onCollisionStay(colB);
-                    colB.onCollisionStay(colA);
-                }
+    for (var i = 0; i < this.circles.length; i++) {
+
+        var circle = this.circles[i];
+        if (circle.radius > 0) {
+
+            // Use this function to draw elements
+            context.save();
+            context.translate(circle.position.x, circle.position.y);
+
+            context.scale(1, 1);
+
+            context.lineWidth = circle.lineWidth;
+            context.fillStyle = circle.color;
+            context.strokeStyle = circle.color;
+
+            context.beginPath();
+            context.arc(0, 0, circle.radius, 0, 2 * Math.PI);
+            context.closePath();
+
+
+            if (circle.isFilled) {
+                context.fill();
+            } else {
+                context.stroke();
             }
+
+            context.restore();
         }
     }
-}
-function Collides(colA, colB)
-{
-    if (Math.abs(colA.position.x - colB.position.x) < colA.getWidth() / 2 + colB.getWidth() / 2)
-{
-        if (Math.abs(colA.position.y - colB.position.y) < colA.getHeight() / 2 + colB.getHeight() / 2)
-{
-            return true;
-        }
-    }
-    return false;
+    this.circles = [];
 }
 
-/* Debugging */
-$('#content').append("<ul id='debugger'></ul>");
-var Debug = {
-    log: function (text)
+Gizmos.AddCircle = function (position, radius, color, isFilled, lineWidth)
 {
-        $('#debugger').append("<li>" + text + "</li>");
-    },
-    clear: function (text)
-{
-        $('#debugger').empty();
+    if (debugging) {
+        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
+
+        if (position == null) { position = new Vector2(); }
+        if (radius == null) { radius = 5; }
+        if (color == null) { color = "black"; }
+        if (isFilled == null) { isFilled = true; }
+        if (lineWidth == null) { lineWidth = 1; }
+
+        var newCircle = new Circle();
+        newCircle.position = position;
+        newCircle.radius = radius;
+        newCircle.color = color;
+        newCircle.isFilled = isFilled;
+        newCircle.lineWidth = lineWidth;
+        this.circles.push(newCircle);
     }
 }
-
-// Draws all elements to the screen
-function Draw()
+Gizmos.AddBox = function (position, size, rotation, color, isFilled, lineWidth)
 {
-    // Clear the screen before the frame commenses
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (debugging) {
+        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
 
-    // Set a clear color and create our back buffer
-    context.fillStyle = CLEAR_COLOR;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+        if (position == null) { position = new Vector2(); }
+        if (size == null) { size = new Vector2(10, 10); }
+        if (rotation == null) { rotation = 0; }
+        if (color == null) { color = "black"; }
+        if (isFilled == null) { isFilled = true; }
+        if (lineWidth == null) { lineWidth = 1; }
 
-    // Loop through all game objects and draw each element
-    for (var i = 0; i < gameObjects.length; i++)
-    {
-        gameObjects[i].draw();
-        Debug.log(gameObjects[i].name);
+        var newBox = new Box();
+        newBox.position = position;
+        newBox.size = size;
+        newBox.rotation = rotation;
+        newBox.color = color;
+        newBox.isFilled = isFilled;
+        newBox.lineWidth = lineWidth;
+        this.boxes.push(newBox);
     }
 }
-function Destroy(gameObject)
-{
-    // If a game object is no longer active, remove it from the list
-    gameObjects = gameObjects.filter(function (object)
-    {
-        return !Object.is(gameObject, object);
-    });
-}
-
-
-// Helper methods
-function random(min, max)
-{
-    // Randomizes between min and max values
-    return min + Math.random() * (max - min);
-}
-
-// Set interval will call the functions at a... set interval (in milliseconds)
-setInterval(function ()
-{
-    Debug.clear();
-    Update();
-    Draw();
-}, 1000 / FPS);
 /*=============================================
 -----------------------------------
 Copyright (c) 2016 Emmanuel Vaccaro
@@ -9988,57 +9995,158 @@ Copyright (c) 2016 Emmanuel Vaccaro
 @brief: Class object that defines a GameObject 
 entity
 ===============================================*/
-function GameObject()
+
+// List of gameobjects in the scene
+var gameObjects = [];
+
+/*
+ * Object class
+ */
+var instanceId = 0;
+function BaseObject()
 {
-    var gameObjectId = gameObjects.length;
-    var gameObject =
+    var objectId = instanceId++;
+    var object =
     {
-        name: 'GameObject ' + gameObjectId, // to distinguish between gameobjects
-        tag: "null",
-        position: new Vector2(),
-        velocity: new Vector2(),
-        rotation: 0,
-        width: 32,
-        height: 32,
-        scale: 1.0,
-        color: "white",
-        isActive: true,
-        isVisible: true,
-        getWidth: function() {
-            return this.width * this.scale;
-        },
-        getHeight: function() {
-            return this.height * this.scale;
-        },
-        update: function (deltaTime)
-        {
-            console.log("You must override the 'update' function for " + this.name);
-        },
-        draw: function ()
-        {
-            if (this.isVisible)
-            {
-                // Use this function to draw elements
-                context.save();
-                context.translate(this.position.x, this.position.y);
-
-                context.scale(this.scale, this.scale);
-
-                //context.translate(this.position.x, this.position.y);
-                context.rotate(this.rotation);
-                //context.translate(-this.position.x, -this.position.y);
-
-                context.fillStyle = this.color;
-                context.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
-                context.restore();
+        transform: null,
+        gameObject: null,
+        types: [],
+        instanceId: objectId,
+        name: 'BaseObject ' + this.instanceId,
+        Start: function() {},
+        update: function (deltaTime) { },
+        draw: function () { },
+        onCollisionStay: function (col) {},
+        CompareType: function(type) {
+            for (var i = 0; i < this.types.length; i++) {
+                if (this.types[i] == type) {
+                    return true;
+                }
             }
+            return false;
         },
-        onCollisionStay: function (collidedObject)
+        ToTypes: function ()
         {
-            // Use this function to handle collision response
+            return this.types;
         }
     }
+    
+    var currentCaller = arguments.callee;
+    while (currentCaller != null)
+    {
+        var callerName = currentCaller.toString();
+        callerName = callerName.substr('function '.length);
+        callerName = callerName.substr(0, callerName.indexOf('('));
 
+        if (callerName != "")
+        {
+            object.types.push(callerName);
+            currentCaller = currentCaller.caller;
+        } else {
+            currentCaller = null;
+        }
+
+    }
+
+    return object;
+}
+
+function Component()
+{
+    var component = new BaseObject();
+    component.InitializeComponent = function () {}
+    return component;
+}
+
+/*
+ * GameObject class 
+ */
+function GameObject()
+{
+    var gameObject = new BaseObject();
+    gameObject.name = 'GameObject ' + gameObject.instanceId; // to distinguish between gameobjects
+    gameObject.transform = new Transform();
+    gameObject.velocity = new Vector2();
+    gameObject.isActive = true;
+    gameObject.tag = 'untagged',
+    gameObject.layer = 'none',
+    gameObject.components  = [];
+    gameObject.getWidth  = function() {
+        return this.width * this.scale;
+    };
+    gameObject.getHeight = function() {
+        return this.height * this.scale;
+    },
+    gameObject.Start = function ()
+    {
+        this.transform.gameObject = this;
+        this.transform.transform = this.transform;
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].Start();
+        }
+    }
+    gameObject.update = function (deltaTime)
+    {
+        this.transform.update(deltaTime);
+        //console.log("You must override the 'update' function for " + this.name);
+        for (var i = 0; i < this.components.length; i++)
+        {
+            this.components[i].update(deltaTime);
+        }
+    },
+    gameObject.draw = function ()
+    {
+        if (this.isActive)
+        {
+            for (var i = 0; i < this.components.length; i++) {
+                this.components[i].draw();
+            }
+        }
+    },
+    gameObject.onCollisionStay = function(col) {
+        // Use this function to handle collision response
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].onCollisionStay(col);
+        }
+    },
+    gameObject.AddComponent = function (component)
+    {
+        component.gameObject = this;
+        component.transform = this.transform;
+        component.InitializeComponent();
+        component.Start();
+        this.components.push(component);
+    }
+    gameObject.GetComponent = function (componentType)
+    {
+        for (var i = 0; i < this.components.length; i++)
+        {
+            var component = this.components[i];
+            if (component.CompareType(componentType)) {
+                return this.components[i];
+            }
+        }
+        return null;
+    }
+    gameObject.GetComponents = function (componentType)
+    {
+        var components = [];
+        var isFound = false;
+        for (var i = 0; i < this.components.length; i++) {
+            var typeA = componentType;
+            var typeB = this.components[i].ToType();
+            if (typeA == typeB) {
+                components.push(this.components[i]);
+                isFound = true;
+            }
+        }
+        if (isFound) {
+            return components;
+        }
+        return null;
+    }
+    
+    // Add to gameObjects list
     gameObjects.push(gameObject);
 
     return gameObject;
@@ -10171,62 +10279,6 @@ $(document).keyup(function (event)
         return keyCode != event.keyCode;
     });
 });
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: particle.js
-@date: 25/03/2016
-@author: Emmanuel Vaccaro
-@brief: Defines a particle GameObject
-===============================================*/
-
-function Particle()
-{
-    var particle = new GameObject();
-    particle.radius = 20;
-    particle.velocity = new Vector2(0, 0);
-    particle.scaleSpeed = 1;
-    particle.speed = 100.0;
-    particle.scale = 1.0;
-
-    particle.update = function (dt)
-    {
-        // Shrinking
-        this.scale -= this.scaleSpeed * dt;
-
-        if (this.scale <= 0) {
-            Destroy(this);
-        }
-
-        // Moving away from explosion center
-        this.position.x += this.velocity.x * dt;
-        this.position.y += this.velocity.y * dt;
-    };
-
-    particle.draw = function ()
-    {
-        // translating the particle's coordinates
-        context.save();
-
-        context.translate(this.position.x, this.position.y);
-
-        // scaling particle
-        context.scale(this.scale, this.scale);
-
-        // drawing a filled circle in the particle's local space
-        context.beginPath();
-        context.arc(-this.radius / 2, -this.radius / 2, this.radius, 0, Math.PI * 2, true);
-        context.closePath();
-
-        context.fillStyle = this.color;
-        context.fill();
-
-        context.restore();
-    }
-
-    return particle;
-}
 function Vector2(x, y)
 {
     if (x == undefined) { x = 0; }
@@ -10261,16 +10313,373 @@ function Vector2(x, y)
         Add: function (other)
         {
             var result = new Vector2();
-            result.x = this.x + other.x;
-            result.y = this.y + other.y;
+            result.x = this.x += other.x;
+            result.y = this.y += other.y;
             return result;
         },
+        Multiply: function (other)
+        {
+            // Note(Manny): Differenciate between Vector2 & floats somehow
+            var result = new Vector2();
+            result.x = this.x * other;
+            result.y = this.y * other;
+            return result;
+        }
     };
 }
 
 function DirectionToAngle(direction)
 {
     return Math.atan2(direction.y, direction.x);
+}
+
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: renderer.js
+@date: 26/09/2016
+@author: Emmanuel Vaccaro
+@brief: Component that renders sprites
+===============================================*/
+
+function Renderer()
+{
+    var renderer = new Component();
+    //renderer.type.push('Renderer');
+    return renderer;
+}
+
+function SpriteRenderer(file)
+{
+    var spriteRenderer = new Renderer();
+    //spriteRenderer.type.push('SpriteRenderer');
+    spriteRenderer.enabled = true;
+    spriteRenderer.color = 'blue';
+    spriteRenderer.sprite = new Sprite(file);
+    spriteRenderer.update = function (deltaTime) { };
+    spriteRenderer.draw = function ()
+    {
+        if (this.enabled) {
+            // Use this function to draw elements
+            context.save();
+            context.translate(this.transform.position.x, this.transform.position.y);
+
+            context.scale(this.transform.scale, this.transform.scale);
+
+            //context.translate(this.position.x, this.position.y);
+            context.rotate(this.transform.rotation);
+            //context.translate(-this.position.x, -this.position.y);
+            
+            this.sprite.draw();
+            
+            context.restore();
+        }
+    };
+    spriteRenderer.onCollisionStay = function (collidedObject)
+    {
+        // Use this function to handle collision response
+    };
+
+    return spriteRenderer;
+}
+
+var loadedImages = [];
+
+function Sprite(file)
+{
+    if (file == null) { file = 'default.png'; }
+    var loadedImage = loadedImages[file];
+    if (loadedImage == null)
+    {
+        loadedImage = loadedImages['default.png'];
+    }
+    var sprite =
+    {
+        name: file,
+        width: loadedImage.width,
+        height: loadedImage.height,
+        src: spriteFolderPath + file,
+        color: 'blue',
+        isLoaded: false,
+        image: loadedImage,
+        draw: function ()
+        {
+            if (this.image != null) {
+                context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+            }
+        }
+    }
+
+    sprite.image.onload = function ()
+    {
+        sprite.width = this.width;
+        sprite.height = this.height;
+    }
+    return sprite;
+}
+
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: transform.js
+@date: 25/03/2016
+@author: Emmanuel Vaccaro
+@brief: Component that defines position, 
+rotation & scale
+===============================================*/
+function Transform()
+{
+    var transform = new Component();
+    // transform.type.push('Transform');
+    transform.parent = null;
+    transform.position = new Vector2();
+    transform.rotation = 0;
+    transform.scale = 1.0;
+    transform.update = function (deltaTime)
+    {
+        if (this.parent != null) {
+            this.position.Add(transform.parent.position);
+            this.rotation += transform.parent.rotation;
+        }
+    }
+    return transform;
+}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: physics.js
+@date: 25/03/2016
+@author: Emmanuel Vaccaro
+@brief: Simulates physics
+===============================================*/
+
+function Bounds(width, height)
+{
+    if (width == null) { width = 10; }
+    if (height == null) { height = 10; }
+    var bounds =
+    {
+        size: { width: width, height: height },
+        extents: new Vector2(),
+        center: new Vector2(),
+        max: new Vector2(),
+        min: new Vector2(),
+    }
+    bounds.extents = new Vector2(bounds.size.width / 2, bounds.size.height / 2);
+    return bounds;
+}
+
+function Collider()
+{
+    var collider = new Component();
+   // collider.type.push('Collider');
+    collider.bounds = new Bounds();
+    collider.enabled = true;
+    return collider;
+}
+
+function BoxCollider()
+{
+    var boxCollider = new Collider();
+   // boxCollider.type.push('BoxCollider');
+    boxCollider.size = new Vector2(10, 10);
+    boxCollider.center = new Vector2();
+    boxCollider.InitializeComponent = function ()
+    {
+        var renderer = this.gameObject.GetComponent('Renderer');
+        if (renderer != null) {
+            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            if (spriteRenderer != null) {
+                var width = spriteRenderer.sprite.width;
+                var height = spriteRenderer.sprite.height;
+                this.size = new Vector2(width, height);
+            }
+        }
+    }
+    boxCollider.update = function (deltaTime)
+    {
+        Gizmos.AddBox(this.transform.position, this.size.Multiply(this.transform.scale), 0, "green", false);
+    }
+    return boxCollider;
+}
+
+function CircleCollider()
+{
+    var circleCollider = new Collider();
+    circleCollider.radius = 50.0;
+    circleCollider.center = new Vector2();
+    circleCollider.InitializeComponent = function ()
+    {
+        var renderer = this.gameObject.GetComponent('Renderer');
+        if (renderer != null) {
+            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            if (spriteRenderer != null) {
+                var width = spriteRenderer.sprite.width;
+                var height = spriteRenderer.sprite.height;
+                this.radius = Math.max(width, height) / 2;
+            }
+        }
+    }
+    circleCollider.update = function (deltaTime)
+    {
+        Gizmos.AddCircle(this.transform.position, this.radius * this.transform.scale, "green", false);
+    }
+    return circleCollider;
+}
+
+function HandleCollisions()
+{
+    for (var x = 0; x < gameObjects.length; x++) {
+        for (var y = 0; y < gameObjects.length; y++) {
+            var gameObjectA = gameObjects[x];
+            var gameObjectB = gameObjects[y];
+            
+            // Check if both gameObjects exist
+            if (gameObjectA != null && gameObjectB != null &&
+                !Object.is(gameObjectA, gameObjectB)) // AND they are not the same
+            {
+                var colA = gameObjectA.GetComponent('Collider');
+                var colB = gameObjectB.GetComponent('Collider');
+                // Check if both colliders exist
+                if (colA != null && colB != null &&
+                    colA.enabled && colB.enabled) // AND they're both enabled
+                {
+                    // Determine if those objects collide with each other
+                    if (Collides(colA, colB)) {
+                        // Collision is touching
+                        gameObjectA.onCollisionStay(colB);
+                        gameObjectB.onCollisionStay(colA);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function Collides(colA, colB)
+{
+    // Box to Box
+    if(colA.CompareType('BoxCollider') && colB.CompareType('BoxCollider')) 
+    {
+        return BoxToBox(colA, colB);
+    }
+
+    // Box to Circle || Circle to Box
+    if(colA.CompareType('BoxCollider') && colB.CompareType('CircleCollider') || 
+       colB.CompareType('BoxCollider') && colA.CompareType('CircleCollider')) 
+    {
+        return BoxToCircle(colA, colB);
+    }
+
+    // Circle to Circle
+    if(colA.CompareType('CircleCollider') && colB.CompareType('CircleCollider')) 
+    {
+        return CircleToCircle(colA, colB);
+    }
+
+    console.log("Error: Cannot detect colliders");
+    return false;
+}
+
+function BoxToBox(boxA, boxB) 
+{
+    var boxASize = new Vector2(boxA.size.x * boxA.transform.scale, boxA.size.y * boxA.transform.scale);
+    var boxBSize = new Vector2(boxB.size.x * boxB.transform.scale, boxB.size.y * boxB.transform.scale);
+    
+    if (Math.abs(boxA.transform.position.x - boxB.transform.position.x) < boxASize.x / 2 + boxBSize.x / 2) {
+        if (Math.abs(boxA.transform.position.y - boxB.transform.position.y) < boxASize.y / 2 + boxBSize.y / 2) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function CircleToCircle(circleA, circleB) 
+{
+    // NEEDS IMPLEMENTATION
+    var a = circleA.transform.position.x - circleB.transform.position.x;
+    var b = circleA.transform.position.y - circleB.transform.position.y;
+    var distance = Math.sqrt(a * a + b * b);
+    if (distance < circleA.radius * circleA.transform.scale + circleB.radius * circleB.transform.scale) {
+        return true;
+    }
+    return false;
+}
+
+function BoxToCircle(box, circle) 
+{
+    // NEEDS IMPLEMENTATION
+    return false;
+}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: particle.js
+@date: 25/03/2016
+@author: Emmanuel Vaccaro
+@brief: Defines a particle GameObject
+===============================================*/
+
+function ParticlePrefab()
+{
+    var particle = new GameObject();
+    particle.AddComponent(new CircleCollider());
+    particle.AddComponent(new ParticleScript());
+    return particle;
+}
+
+function ParticleScript()
+{
+    var particleScript = new Component();
+    particleScript.radius = 20;
+    particleScript.velocity = new Vector2(0, 0);
+    particleScript.scaleSpeed = 1;
+    particleScript.speed = 100.0;
+    particleScript.color = "black";
+    particleScript.Start = function ()
+    {
+        this.transform.scale = 1.0;
+        var circleCollider = this.gameObject.GetComponent('CircleCollider');
+        circleCollider.radius = this.radius;
+    }
+    particleScript.update = function (dt)
+    {
+        // Shrinking
+        this.transform.scale -= this.scaleSpeed * dt;
+
+        if (this.transform.scale <= 0) {
+            Destroy(this.gameObject);
+        }
+
+        // Moving away from explosion center
+        this.transform.position.x += this.velocity.x * dt;
+        this.transform.position.y += this.velocity.y * dt;
+    };
+    particleScript.draw = function ()
+    {
+        // translating the particle's coordinates
+        context.save();
+        // drawing a filled circle in the particle's local space
+        context.translate(this.transform.position.x, this.transform.position.y);
+       
+        // scaling particle
+        context.scale(this.transform.scale, this.transform.scale);
+       
+        context.fillStyle = this.color;
+
+        context.beginPath();
+        context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
+        context.closePath();
+
+        context.fill();
+
+        context.restore();
+    }
+    return particleScript;
 }
 
 /*
@@ -10283,230 +10692,97 @@ function CreateExplosion(position, count, speed, color)
     // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
     for (var i = 0; i < count; i++)
     {
-        var particle = Particle();
-        particle.speed = speed;
-        particle.color = color;
+        var particle = new ParticlePrefab();
+        var particleScript = particle.GetComponent('ParticleScript');
+        particleScript.speed = speed;
+        particleScript.color = color;
        
         // Particle will start at explosion center
-        particle.position = new Vector2(position.x, position.y);
-        particle.velocity.x = random(-particle.speed, particle.speed);
-        particle.velocity.y = random(-particle.speed, particle.speed);
+        particleScript.transform.position = new Vector2(position.x, position.y);
+        particleScript.velocity.x = random(-particleScript.speed, particleScript.speed);
+        particleScript.velocity.y = random(-particleScript.speed, particleScript.speed);
     }
 }
 /*
+ * Sprites
+ */
+var sprites = [
+    'default.png',
+    'player.png'
+];
+
+/*
  * Player GameObject
  */
-var player = new GameObject();
-player.name = "Player 1";
-player.tag = "Player";
-player.color = "blue";
-player.speed = 200;
-player.shootRate = 0.15;
-player.shootTimer = 0;
-player.health = 100;
-
-player.onCollisionStay = function (col)
+function PlayerPrefab()
 {
-    console.log(this.health);
+    var playerPrefab = new GameObject();
+    playerPrefab.AddComponent(new SpriteRenderer());
+    playerPrefab.AddComponent(new CircleCollider());
+    playerPrefab.AddComponent(new PlayerScript());
+    playerPrefab.name = "Player 1";
+    playerPrefab.tag = "Player";
+    return playerPrefab;
 }
-
-player.update = function (deltaTime)
-{
-    var mousePos = Input.GetMousePosition();
-    var direction = new Vector2(0, 0);
-    direction = mousePos.Minus(this.position);
-    direction = direction.GetNormal();
-    this.rotation = DirectionToAngle(direction);
-
-    // Have a shoot timer that counts up in seconds using deltaTIme
-    this.shootTimer += deltaTime;
-    // If the shoot timer has reached the shoot rate
-    if (this.shootTimer >= this.shootRate) {
-        // Check if the space button was pressed
-        if (Input.GetMouseButtonDown('left')) {
-            // If it was, shoot the bullet
-            this.shoot(direction);
-
-            // Reset the timer
-            this.shootTimer = 0;
-
-            // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
-            // That's because we want to reset the timer AFTER we shoot the weapon.
-        }
-    }
-
-    // Movement in different directions
-    if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
-        this.position.x -= this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
-        this.position.x += this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
-        this.position.y -= this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
-        this.position.y += this.speed * deltaTime;
-    }
-
-    // Clamp the value of the player's movment so that they can 
-    this.position.x = Math.min(Math.max(this.position.x, 0), canvas.width - this.width);
-    this.position.y = Math.min(Math.max(this.position.y, 0), canvas.height - this.height);
-};
-// Shoots a bullet
-player.shoot = function (direction)
-{
-    // Pre-set the bullet's position to the middle of the player 
-    // That way it fires from the center of the player
-    var bulletPosition = new Vector2(this.position.x, this.position.y);
-
-    // Calculate velocity to be the normal of the direction 
-    // from the player to the mouse
-    var mousePos = Input.GetMousePosition();
-
-    // Create a new bullet using the 'Bullet' function
-    var bullet = new Bullet();
-    bullet.position = bulletPosition;
-    bullet.speed = 1000;
-    bullet.scale = 0.5;
-    bullet.rotation = this.rotation;
-    bullet.velocity = direction;
-
-    var fireSound = new Audio("resources/fire.wav");
-    fireSound.play();
-};
 
 /*
  * Bullets
  */
 
 // Bullet object function
-function Bullet()
+function BulletPrefab()
 {
     var bullet = new GameObject();
-
-    bullet.color = "purple";
-    bullet.speed = 1.0;
-    bullet.direction = new Vector2(0, 0);
-
-    bullet.isWithinBounds = function ()
-{
-        var pos = this.position;
-        if (pos.x >= 0 && pos.x <= canvas.width &&
-            pos.y >= 0 && pos.y <= canvas.height) {
-            return true;
-        }
-
-        CreateExplosion(this.position, 2, 40, "#525252");
-        CreateExplosion(this.position, 2, 60, "#FFA318");
-        return false;
-    };
-
-    bullet.update = function ()
-{
-        this.position.x += this.velocity.x * this.speed * deltaTime;
-        this.position.y += this.velocity.y * this.speed * deltaTime;
-        if (!this.isWithinBounds()) {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
-            Destroy(this);
-        }
-    };
-
-    bullet.onCollisionStay = function (col)
-{
-        if (col.tag == "Enemy") {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
-            Destroy(col);
-            Destroy(this);
-            CreateExplosion(col.position, 5, 40, "#525252");
-            CreateExplosion(col.position, 5, 80, "#FFA318");
-        }
-    }
-
+    bullet.AddComponent(new SpriteRenderer());
+    bullet.AddComponent(new BulletScript());
+    bullet.AddComponent(new CircleCollider());
     return bullet;
 }
-
 
 /*
  * Enemy Manager
  */
-var enemyManager = new GameObject();
-enemyManager.name = "Enemy Manager";
-enemyManager.isVisible = false;
-enemyManager.spawnRate = 0.5;
-enemyManager.spawnTimer = 0;
-enemyManager.update = function (deltaTime)
+function EnemyManagerPrefab()
 {
-    this.spawnTimer += deltaTime;
-    if (this.spawnTimer >= this.spawnRate) {
-        var randomPos = new Vector2();
-        randomPos.x = random(0, canvas.width);
-        randomPos.y = random(0, canvas.height);
-
-        var enemy = new Enemy();
-        enemy.position = randomPos;
-        enemy.speed = random(50, 80);
-
-        this.spawnTimer = 0;
-    }
+    var enemyManager = new GameObject();
+    enemyManager.name = "Enemy Manager";
+    enemyManager.AddComponent(new EnemyManagerScript());
+    return enemyManager;
 }
 
 /*
  * Enemy GameObject
  */
-function Enemy()
+function EnemyPrefab()
 {
     var enemy = new GameObject();
     enemy.name = "Enemy";
     enemy.tag = "Enemy";
     enemy.color = "red";
-    enemy.speed = 20.0;
-    enemy.damage = 1.0;
-    enemy.attackRate = 1.0;
-    enemy.attackTimer = 0;
-    enemy.update = function (deltaTime)
-{
-        var direction = player.position.Minus(this.position);
-        direction = direction.GetNormal();
-
-        this.rotation = DirectionToAngle(direction);
-
-        this.position.x += direction.x * this.speed * deltaTime;
-        this.position.y += direction.y * this.speed * deltaTime;
-
-        this.attackTimer += deltaTime;
-    }
-    enemy.onCollisionStay = function (col)
-{
-        if (col.tag == "Player") {
-            if (this.attackTimer >= this.attackRate) {
-                col.health -= this.damage;
-                this.attackTimer = 0;
-            }
-        }
-    }
+    enemy.AddComponent(new EnemyScript());
+    enemy.AddComponent(new SpriteRenderer());
+    enemy.AddComponent(new CircleCollider());
     return enemy;
 }
-
 
 /*
  * Crosshair
  */
 
 $('body').css('cursor', 'none');
+
 var crosshair = new GameObject();
+crosshair.AddComponent(new CircleCollider());
 crosshair.color = "red";
 crosshair.radius = 30;
 crosshair.update = function (deltaTime)
 {
-    this.position = Input.GetMousePosition();
+    this.transform.position = Input.GetMousePosition();
 }
 crosshair.draw = function ()
 {
     context.save();
-    context.translate(this.position.x, this.position.y);
+    context.translate(this.transform.position.x, this.transform.position.y);
     context.scale(this.scale, this.scale);
 
     // Draw first circle
@@ -10525,3 +10801,344 @@ crosshair.draw = function ()
 
     context.restore();
 }
+
+var player;
+var enemyManager;
+
+function Start()
+{
+    player = new PlayerPrefab();
+    enemyManager = new EnemyManagerPrefab();
+    player.transform.parent = enemyManager.transform;
+}
+
+function Update()
+{
+
+}
+/*
+ * Scripts for GameObjects go here
+ */
+
+function PlayerScript()
+{
+    var playerScript = new Component();
+    playerScript.speed = 200;
+    playerScript.shootRate = 0.05;
+    playerScript.shootTimer = 0;
+    playerScript.health = 100;
+    playerScript.Start = function ()
+    {
+        this.gameObject.tag = "Player";
+        this.transform.scale = 0.4;
+    }
+    playerScript.update = function (deltaTime)
+    {
+        var mousePos = Input.GetMousePosition();
+        var direction = new Vector2(0, 0);
+        direction = mousePos.Minus(this.transform.position);
+        direction = direction.GetNormal();
+        this.transform.rotation = DirectionToAngle(direction);
+
+        // Have a shoot timer that counts up in seconds using deltaTIme
+        this.shootTimer += deltaTime;
+        // If the shoot timer has reached the shoot rate
+        if (this.shootTimer >= this.shootRate) {
+            // Check if the space button was pressed
+            if (Input.GetMouseButtonDown('left')) {
+                // If it was, shoot the bullet
+                this.shoot(direction);
+
+                // Reset the timer
+                this.shootTimer = 0;
+
+                // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
+                // That's because we want to reset the timer AFTER we shoot the weapon.
+            }
+        }
+
+        // Movement in different directions
+        if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
+            this.transform.position.x -= this.speed * deltaTime;
+        }
+        if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
+            this.transform.position.x += this.speed * deltaTime;
+        }
+        if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
+            this.transform.position.y -= this.speed * deltaTime;
+        }
+        if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
+            this.transform.position.y += this.speed * deltaTime;
+        }
+
+        // Clamp the value of the player's movment so that they can 
+        this.transform.position.x = Math.min(Math.max(this.transform.position.x, 0), canvas.width - this.transform.scale);
+        this.transform.position.y = Math.min(Math.max(this.transform.position.y, 0), canvas.height - this.transform.scale);
+    };
+    playerScript.shoot = function (direction)
+    {
+        // Pre-set the bullet's position to the middle of the player 
+        // That way it fires from the center of the player
+        var bulletPosition = new Vector2(this.transform.position.x, this.transform.position.y);
+
+        // Calculate velocity to be the normal of the direction 
+        // from the player to the mouse
+        var mousePos = Input.GetMousePosition();
+
+        // Create a new bullet using the 'Bullet' function
+        var bullet = new BulletPrefab();
+        var bulletScript = bullet.GetComponent('BulletScript');
+        if (bulletScript != null)
+        {
+            bulletScript.transform.position = bulletPosition;
+            bulletScript.transform.rotation = this.transform.rotation;
+            bulletScript.velocity = direction;
+        }
+
+        var fireSound = new Audio("resources/fire.wav");
+        fireSound.play();
+    };
+    return playerScript;
+}
+
+function EnemyManagerScript()
+{
+    var enemyManagerScript = new Component();
+    enemyManagerScript.isVisible = false;
+    enemyManagerScript.spawnRate = 5;
+    enemyManagerScript.spawnTimer = 0;
+    enemyManagerScript.update = function (deltaTime)
+    {
+        this.transform.position.x += 0.4 * deltaTime;
+
+        this.spawnTimer += deltaTime;
+        if (this.spawnTimer >= this.spawnRate) {
+            var randomPos = new Vector2();
+            randomPos.x = random(0, canvas.width);
+            randomPos.y = random(0, canvas.height);
+
+            var enemy = new EnemyPrefab();
+            var enemyScript = enemy.GetComponent('EnemyScript');
+            if (enemyScript != null)
+            {
+                enemyScript.transform.position = randomPos;
+                enemyScript.speed = random(50, 80);
+            }
+
+            this.spawnTimer = 0;
+        }
+    }
+
+    return enemyManagerScript;
+}
+
+function EnemyScript()
+{
+    var enemyScript = new Component();
+    enemyScript.name = "Enemy " + enemyScript.instanceId;
+    enemyScript.speed = 20.0;
+    enemyScript.damage = 1.0;
+    enemyScript.attackRate = 1.0;
+    enemyScript.attackTimer = 0;
+    enemyScript.Start = function ()
+    {
+        enemyScript.transform.scale = 0.4;
+        enemyScript.gameObject.tag = "Enemy";
+    }
+    enemyScript.update = function (deltaTime)
+    {
+        var direction = player.transform.position.Minus(this.transform.position);
+        direction = direction.GetNormal();
+
+        this.rotation = DirectionToAngle(direction);
+
+        this.transform.position.x += direction.x * this.speed * deltaTime;
+        this.transform.position.y += direction.y * this.speed * deltaTime;
+
+        this.attackTimer += deltaTime;
+    }
+    enemyScript.onCollisionStay = function (col)
+    {
+        if (col.gameObject.tag == "Player") {
+            if (this.attackTimer >= this.attackRate) {
+                col.health -= this.damage;
+                this.attackTimer = 0;
+            }
+        }
+    }
+    return enemyScript;
+}
+
+
+function BulletScript()
+{
+    var bulletScript = new Component();
+    bulletScript.speed = 1000.0;
+    bulletScript.velocity = new Vector2();
+    bulletScript.direction = new Vector2(0, 0);
+    bulletScript.Start = function ()
+    {
+        bulletScript.transform.scale = 0.1;
+    }
+    bulletScript.isWithinBounds = function ()
+    {
+        var pos = this.transform.position;
+        if (pos.x >= 0 && pos.x <= canvas.width &&
+            pos.y >= 0 && pos.y <= canvas.height) {
+            return true;
+        }
+
+        CreateExplosion(this.transform.position, 2, 40, "#525252");
+        CreateExplosion(this.transform.position, 2, 60, "#FFA318");
+        return false;
+    };
+    bulletScript.update = function (deltaTime)
+    {
+        this.transform.position.x += this.velocity.x * this.speed * deltaTime;
+        this.transform.position.y += this.velocity.y * this.speed * deltaTime;
+        if (!this.isWithinBounds()) {
+            var bulletSound = new Audio("resources/explosion.wav");
+            bulletSound.play();
+            Destroy(this.gameObject);
+        }
+    };
+    bulletScript.onCollisionStay = function (col)
+    {
+        if (col.gameObject.tag == "Enemy") {
+            var bulletSound = new Audio("resources/explosion.wav");
+            bulletSound.play();
+            Destroy(col.gameObject);
+            Destroy(this.gameObject);
+            CreateExplosion(col.transform.position, 5, 40, "#525252");
+            CreateExplosion(col.transform.position, 5, 80, "#FFA318");
+        }
+    }
+
+    return bulletScript;
+}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: engine.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Updates the game, physics & time
+===============================================*/
+
+// Setup frames per second (cap)
+var FPS = 60;
+var debugging = true;
+
+// Obtain the GameCanvas from the document
+var canvas = document.getElementById('GameCanvas');
+// Get the '2d' context from the canvas for drawing
+var context = canvas.getContext('2d');
+
+var prevTime = Date.now();
+var currTime = 0;
+var deltaTime = 0;
+
+// Define the clear color
+var CLEAR_COLOR = "white";
+var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+
+// Updates all elements in the game
+function UpdateEngine()
+{
+    // Calculate deltaTime
+    currTime = Date.now();
+    deltaTime = (currTime - prevTime) / 1000;
+    prevTime = currTime;
+
+    // Automatically scale the canvas dimensions
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+
+    HandleCollisions();
+
+    // Loop through all game objects and call update on each
+    for (var i = 0; i < gameObjects.length; i++) {
+        gameObjects[i].update(deltaTime);
+    }
+}
+
+/* Debugging */
+$('#content').append("<ul id='debugger'></ul>");
+var Debug = {
+    log: function (text)
+    {
+        if (debugging) {
+            $('#debugger').append("<li>" + text + "</li>");
+        }
+    },
+    clear: function (text)
+    {
+        $('#debugger').empty();
+    }
+}
+
+// Draws all elements to the screen
+function DrawEngine()
+{
+    // Loop through all game objects and draw each element
+    for (var i = 0; i < gameObjects.length; i++) {
+        gameObjects[i].draw();
+        Debug.log(gameObjects[i].name);
+    }
+}
+function Destroy(gameObject)
+{
+    // If a game object is no longer active, remove it from the list
+    gameObjects = gameObjects.filter(function (object)
+    {
+        return !Object.is(gameObject, object);
+    });
+}
+
+// Helper methods
+function random(min, max)
+{
+    // Randomizes between min and max values
+    return min + Math.random() * (max - min);
+}
+
+/*
+ * Load all sprites
+ */
+var spriteFolderPath = "resources/sprites/";
+for (var i = 0; i < sprites.length; i++) {
+    var fileName = sprites[i];
+    var image = new Image();
+    image.src = spriteFolderPath + fileName;
+    loadedImages[fileName] = image;
+}
+
+$(window).load(function ()
+{
+    Start();
+    // Loop through all game objects and call update on each
+    for (var i = 0; i < gameObjects.length; i++) {
+        gameObjects[i].Start();
+    }
+
+    // Set interval will call the functions at a... set interval (in milliseconds)
+    setInterval(function ()
+    {
+        Debug.clear();
+
+        // Clear the screen before the frame commenses
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Set a clear color and create our back buffer
+        context.fillStyle = CLEAR_COLOR;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        Update();
+
+        UpdateEngine();
+        DrawEngine();
+        Gizmos.Draw();
+    }, 1000 / FPS);
+});

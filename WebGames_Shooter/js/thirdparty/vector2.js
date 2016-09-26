@@ -32,10 +32,18 @@
         Add: function (other)
         {
             var result = new Vector2();
-            result.x = this.x + other.x;
-            result.y = this.y + other.y;
+            result.x = this.x += other.x;
+            result.y = this.y += other.y;
             return result;
         },
+        Multiply: function (other)
+        {
+            // Note(Manny): Differenciate between Vector2 & floats somehow
+            var result = new Vector2();
+            result.x = this.x * other;
+            result.y = this.y * other;
+            return result;
+        }
     };
 }
 

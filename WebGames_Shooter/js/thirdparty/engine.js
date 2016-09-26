@@ -17,8 +17,6 @@ var canvas = document.getElementById('GameCanvas');
 // Get the '2d' context from the canvas for drawing
 var context = canvas.getContext('2d');
 
-// List of gameobjects in the scene
-var gameObjects = [];
 var prevTime = Date.now();
 var currTime = 0;
 var deltaTime = 0;
@@ -28,7 +26,7 @@ var CLEAR_COLOR = "white";
 var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
 
 // Updates all elements in the game
-function Update()
+function UpdateEngine()
 {
     // Calculate deltaTime
     currTime = Date.now();
@@ -43,70 +41,31 @@ function Update()
     HandleCollisions();
 
     // Loop through all game objects and call update on each
-    for (var i = 0; i < gameObjects.length; i++)
-{
+    for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].update(deltaTime);
     }
-}
-function HandleCollisions()
-{
-    for (var x = 0; x < gameObjects.length; x++)
-{
-        for (var y = 0; y < gameObjects.length; y++)
-{
-            var colA = gameObjects[x];
-            var colB = gameObjects[y];
-            if (!Object.is(colA, colB) &&
-                colA.isVisible && colB.isVisible)
-{
-                if (Collides(colA, colB))
-{
-                    // Collision is touching
-                    colA.onCollisionStay(colB);
-                    colB.onCollisionStay(colA);
-                }
-            }
-        }
-    }
-}
-function Collides(colA, colB)
-{
-    if (Math.abs(colA.position.x - colB.position.x) < colA.getWidth() / 2 + colB.getWidth() / 2)
-{
-        if (Math.abs(colA.position.y - colB.position.y) < colA.getHeight() / 2 + colB.getHeight() / 2)
-{
-            return true;
-        }
-    }
-    return false;
 }
 
 /* Debugging */
 $('#content').append("<ul id='debugger'></ul>");
 var Debug = {
     log: function (text)
-{
-        $('#debugger').append("<li>" + text + "</li>");
+    {
+        if (debugging) {
+            $('#debugger').append("<li>" + text + "</li>");
+        }
     },
     clear: function (text)
-{
+    {
         $('#debugger').empty();
     }
 }
 
 // Draws all elements to the screen
-function Draw()
+function DrawEngine()
 {
-    // Clear the screen before the frame commenses
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Set a clear color and create our back buffer
-    context.fillStyle = CLEAR_COLOR;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
     // Loop through all game objects and draw each element
-    for (var i = 0; i < gameObjects.length; i++)
-    {
+    for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].draw();
         Debug.log(gameObjects[i].name);
     }
@@ -120,7 +79,6 @@ function Destroy(gameObject)
     });
 }
 
-
 // Helper methods
 function random(min, max)
 {
@@ -128,10 +86,41 @@ function random(min, max)
     return min + Math.random() * (max - min);
 }
 
-// Set interval will call the functions at a... set interval (in milliseconds)
-setInterval(function ()
+/*
+ * Load all sprites
+ */
+var spriteFolderPath = "resources/sprites/";
+for (var i = 0; i < sprites.length; i++) {
+    var fileName = sprites[i];
+    var image = new Image();
+    image.src = spriteFolderPath + fileName;
+    loadedImages[fileName] = image;
+}
+
+$(window).load(function ()
 {
-    Debug.clear();
-    Update();
-    Draw();
-}, 1000 / FPS);
+    Start();
+    // Loop through all game objects and call update on each
+    for (var i = 0; i < gameObjects.length; i++) {
+        gameObjects[i].Start();
+    }
+
+    // Set interval will call the functions at a... set interval (in milliseconds)
+    setInterval(function ()
+    {
+        Debug.clear();
+
+        // Clear the screen before the frame commenses
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Set a clear color and create our back buffer
+        context.fillStyle = CLEAR_COLOR;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        Update();
+
+        UpdateEngine();
+        DrawEngine();
+        Gizmos.Draw();
+    }, 1000 / FPS);
+});
