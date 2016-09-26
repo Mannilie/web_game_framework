@@ -1,0 +1,25 @@
+[
+  {
+    "outputFileName": "js/!main.js.js",
+    "inputFiles": [
+      "js/thirdparty/gameobject.js",
+      "js/thirdparty/gizmos.js",
+      "js/thirdparty/inputmanager.js",
+      "js/thirdparty/jquery-2.2.2.js",
+      "js/thirdparty/physics.js",
+      "js/thirdparty/renderer.js",
+      "js/thirdparty/transform.js",
+      "js/thirdparty/vector2.js",
+      "js/explosions.js",
+
+
+      "js/level01.js",
+      "js/particle.js",
+      "js/scripts.js",
+
+
+        
+      "js/thirdparty/engine.js",
+    ]
+  }
+]
