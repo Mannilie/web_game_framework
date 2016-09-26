@@ -1,0 +1,41 @@
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: bundleconfig.json
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Automatically generates a single js file
+upon saving.
+===============================================*/
+
+[
+  {
+    "outputFileName": "js/!main.js",
+    "inputFiles": [
+      "js/thirdparty/jquery-2.2.2.js",
+      "js/thirdparty/gizmos.js",
+      "js/thirdparty/gameobject.js",
+      "js/thirdparty/inputmanager.js",
+      "js/thirdparty/vector2.js",
+      "js/thirdparty/renderer.js",
+      "js/thirdparty/transform.js",
+      "js/thirdparty/physics.js",
+     // "js/thirdparty/math.js",
+      /* Place new scripts here seperated by commas.
+         (e.g. "js/newfile.js") 
+      */
+      "js/particle.js",
+      "js/explosions.js",
+      "js/level01.js",
+      "js/scripts.js",
+
+
+
+      /*
+      Engine has to go last
+      */
+      "js/thirdparty/engine.js"
+    ]
+  }
+]
