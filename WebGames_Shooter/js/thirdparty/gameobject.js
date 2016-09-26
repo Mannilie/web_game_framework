@@ -1,10 +1,19 @@
-﻿function GameObject()
+﻿/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: gameobject.js
+@date: 25/09/2016
+@author: Emmanuel Vaccaro
+@brief: Class object that defines a GameObject 
+entity
+===============================================*/
+function GameObject()
 {
     var gameObjectId = gameObjects.length;
-
     var gameObject =
     {
-        name: 'GameObject ' + gameObjectId,
+        name: 'GameObject ' + gameObjectId, // to distinguish between gameobjects
         tag: "null",
         position: new Vector2(),
         velocity: new Vector2(),

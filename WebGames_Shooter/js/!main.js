@@ -9841,6 +9841,16 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: engine.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Updates the game, physics & time
+===============================================*/
+
 // Setup frames per second (cap)
 var FPS = 60;
 var debugging = true;
@@ -9858,7 +9868,6 @@ var deltaTime = 0;
 
 // Define the clear color
 var CLEAR_COLOR = "white";
-
 var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
 
 // Updates all elements in the game
@@ -9878,24 +9887,23 @@ function Update()
 
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++)
-    {
+{
         gameObjects[i].update(deltaTime);
     }
 }
-
 function HandleCollisions()
 {
     for (var x = 0; x < gameObjects.length; x++)
-    {
+{
         for (var y = 0; y < gameObjects.length; y++)
-        {
+{
             var colA = gameObjects[x];
             var colB = gameObjects[y];
             if (!Object.is(colA, colB) &&
                 colA.isVisible && colB.isVisible)
-            {
+{
                 if (Collides(colA, colB))
-                {
+{
                     // Collision is touching
                     colA.onCollisionStay(colB);
                     colB.onCollisionStay(colA);
@@ -9904,31 +9912,27 @@ function HandleCollisions()
         }
     }
 }
-
 function Collides(colA, colB)
 {
     if (Math.abs(colA.position.x - colB.position.x) < colA.getWidth() / 2 + colB.getWidth() / 2)
-    {
+{
         if (Math.abs(colA.position.y - colB.position.y) < colA.getHeight() / 2 + colB.getHeight() / 2)
-        {
+{
             return true;
         }
     }
     return false;
 }
 
-/*
- * Debugging
- */
-
+/* Debugging */
 $('#content').append("<ul id='debugger'></ul>");
 var Debug = {
     log: function (text)
-    {
+{
         $('#debugger').append("<li>" + text + "</li>");
     },
     clear: function (text)
-    {
+{
         $('#debugger').empty();
     }
 }
@@ -9950,7 +9954,6 @@ function Draw()
         Debug.log(gameObjects[i].name);
     }
 }
-
 function Destroy(gameObject)
 {
     // If a game object is no longer active, remove it from the list
@@ -9960,6 +9963,14 @@ function Destroy(gameObject)
     });
 }
 
+
+// Helper methods
+function random(min, max)
+{
+    // Randomizes between min and max values
+    return min + Math.random() * (max - min);
+}
+
 // Set interval will call the functions at a... set interval (in milliseconds)
 setInterval(function ()
 {
@@ -9967,87 +9978,22 @@ setInterval(function ()
     Update();
     Draw();
 }, 1000 / FPS);
-/*
- * Basic explosion, all particles move and shrink at the same speed
- * 
- * Parameter : explosion center position
- */
-
-function CreateExplosion(position, count, speed, color)
-{
-    // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
-    for (var i = 0; i < count; i++)
-    {
-        var particle = Particle();
-        particle.speed = speed;
-        particle.color = color;
-
-        // Particle will start at explosion center
-        particle.position = new Vector2(position.x, position.y);
-        particle.velocity.x = random(-particle.speed, particle.speed);
-        particle.velocity.y = random(-particle.speed, particle.speed);
-    }
-}
-
-function Particle()
-{
-    var particle = new GameObject();
-    particle.radius = 20;
-    particle.velocity = new Vector2(0, 0);
-    particle.scaleSpeed = 1;
-    particle.speed = 100.0;
-    particle.scale = 1.0;
-    
-    particle.update = function (dt)
-    {
-        // Shrinking
-        this.scale -= this.scaleSpeed * dt;
-
-        if (this.scale <= 0)
-        {
-            Destroy(this);
-        }
-
-        // Moving away from explosion center
-        this.position.x += this.velocity.x * dt;
-        this.position.y += this.velocity.y * dt;
-    };
-
-    particle.draw = function()
-    {
-        // translating the particle's coordinates
-        context.save();
-        
-        context.translate(this.position.x, this.position.y);
-
-        // scaling particle
-        context.scale(this.scale, this.scale);
-
-        // drawing a filled circle in the particle's local space
-        context.beginPath();
-        context.arc(-this.radius / 2, -this.radius / 2, this.radius, 0, Math.PI * 2, true);
-        context.closePath();
-
-        context.fillStyle = this.color;
-        context.fill();
-
-        context.restore();
-    }
-
-    return particle;
-}
-
-function random(min, max)
-{
-    return min + Math.random() * (max - min);
-}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: gameobject.js
+@date: 25/09/2016
+@author: Emmanuel Vaccaro
+@brief: Class object that defines a GameObject 
+entity
+===============================================*/
 function GameObject()
 {
     var gameObjectId = gameObjects.length;
-
     var gameObject =
     {
-        name: 'GameObject ' + gameObjectId,
+        name: 'GameObject ' + gameObjectId, // to distinguish between gameobjects
         tag: "null",
         position: new Vector2(),
         velocity: new Vector2(),
@@ -10097,9 +10043,18 @@ function GameObject()
 
     return gameObject;
 }
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: inputmanager.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Manages Keyboard & Mouse input
+===============================================*/
+
 // Dictionary of keycodes
 var keys = {};
-
 keys['w'] = 87;
 keys['a'] = 65;
 keys['s'] = 83;
@@ -10110,27 +10065,32 @@ keys['up'] = 38;
 keys['right'] = 39;
 keys['down'] = 40;
 
+// >> Add more KeyCodes here <<
+
 // Dictionary of mouse button codes
 var mouseButtons = {};
-
 mouseButtons['left'] = 1;
 mouseButtons['middle'] = 2;
 mouseButtons['right'] = 3;
 
+// >> Add more MouseButtons here <<
+
 // Input object that handles input throughout the project
-var Input = {
+var Input =
+{
     _keysDown: [],
     _mousePosition: new Vector2(),
     _mouseButtonsDown: [],
 
     // Returns the mouse position variable
-    GetMousePosition: function()
+    GetMousePosition: function ()
     {
         return this._mousePosition;
     },
 
     // Function that checks if a mouse button is down and returns true/false
-    GetMouseButtonDown: function(buttonName) {
+    GetMouseButtonDown: function (buttonName)
+    {
         // Try and obtain the button code from the list of mouse buttons defined
         var findButtonCode = mouseButtons[buttonName];
         // Check if the button code exists in the list
@@ -10211,247 +10171,61 @@ $(document).keyup(function (event)
         return keyCode != event.keyCode;
     });
 });
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: particle.js
+@date: 25/03/2016
+@author: Emmanuel Vaccaro
+@brief: Defines a particle GameObject
+===============================================*/
 
-/*
- * Player GameObject
- */
-var player = new GameObject();
-player.name = "Player 1";
-player.tag = "Player";
-player.color = "blue";
-player.speed = 200;
-player.shootRate = 0.15;
-player.shootTimer = 0;
-player.health = 100;
-
-player.onCollisionStay = function (col)
+function Particle()
 {
-    console.log(this.health);
-}
+    var particle = new GameObject();
+    particle.radius = 20;
+    particle.velocity = new Vector2(0, 0);
+    particle.scaleSpeed = 1;
+    particle.speed = 100.0;
+    particle.scale = 1.0;
 
-player.update = function (deltaTime)
-{
-    var mousePos = Input.GetMousePosition();
-    var direction = new Vector2(0, 0);
-    direction = mousePos.Minus(this.position);
-    direction = direction.GetNormal();
-    this.rotation = DirectionToAngle(direction);
-
-    // Have a shoot timer that counts up in seconds using deltaTIme
-    this.shootTimer += deltaTime;
-    // If the shoot timer has reached the shoot rate
-    if (this.shootTimer >= this.shootRate)
+    particle.update = function (dt)
     {
-        // Check if the space button was pressed
-        if (Input.GetMouseButtonDown('left'))
-        {
-            // If it was, shoot the bullet
-            this.shoot(direction);
-    
-            // Reset the timer
-            this.shootTimer = 0;
-    
-            // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
-            // That's because we want to reset the timer AFTER we shoot the weapon.
-        }
-    }
-    
-    // Movement in different directions
-    if (Input.GetKeyDown('left') || Input.GetKeyDown('a'))
-    {
-        this.position.x -= this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('right') || Input.GetKeyDown('d'))
-    {
-        this.position.x += this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('up') || Input.GetKeyDown('w'))
-    {
-        this.position.y -= this.speed * deltaTime;
-    }
-    if (Input.GetKeyDown('down') || Input.GetKeyDown('s'))
-    {
-        this.position.y += this.speed * deltaTime;
-    }
-    
-    // Clamp the value of the player's movment so that they can 
-    this.position.x = Math.min(Math.max(this.position.x, 0), canvas.width - this.width);
-    this.position.y = Math.min(Math.max(this.position.y, 0), canvas.height - this.height);
-};
-// Shoots a bullet
-player.shoot = function (direction)
-{
-    // Pre-set the bullet's position to the middle of the player 
-    // That way it fires from the center of the player
-    var bulletPosition = new Vector2(this.position.x, this.position.y);
+        // Shrinking
+        this.scale -= this.scaleSpeed * dt;
 
-    // Calculate velocity to be the normal of the direction 
-    // from the player to the mouse
-    var mousePos = Input.GetMousePosition();
-
-    // Create a new bullet using the 'Bullet' function
-    var bullet = new Bullet();
-    bullet.position = bulletPosition;
-    bullet.speed = 1000;
-    bullet.scale = 0.5;
-    bullet.rotation = this.rotation;
-    bullet.velocity = direction;
-
-    var fireSound = new Audio("resources/fire.wav");
-    fireSound.play();
-};
-
-/*
- * Bullets
- */
-
-// Bullet object function
-function Bullet()
-{
-    var bullet = new GameObject();
-
-    bullet.color = "purple";
-    bullet.speed = 1.0;
-    bullet.direction = new Vector2(0, 0);
-    
-    bullet.isWithinBounds = function ()
-    {
-        var pos = this.position;
-        if (pos.x >= 0 && pos.x <= canvas.width &&
-            pos.y >= 0 && pos.y <= canvas.height) {
-            return true;
-        }
-
-        CreateExplosion(this.position, 2, 40, "#525252");
-        CreateExplosion(this.position, 2, 60, "#FFA318");
-        return false;
-    };
-    
-    bullet.update = function ()
-    {
-        this.position.x += this.velocity.x * this.speed * deltaTime;
-        this.position.y += this.velocity.y * this.speed * deltaTime;
-        if (!this.isWithinBounds())
-        {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
+        if (this.scale <= 0) {
             Destroy(this);
         }
+
+        // Moving away from explosion center
+        this.position.x += this.velocity.x * dt;
+        this.position.y += this.velocity.y * dt;
     };
-    
-    bullet.onCollisionStay = function (col)
+
+    particle.draw = function ()
     {
-        if (col.tag == "Enemy")
-        {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
-            Destroy(col);
-            Destroy(this);
-            CreateExplosion(col.position, 5, 40, "#525252");
-            CreateExplosion(col.position, 5, 80, "#FFA318");
-        }
+        // translating the particle's coordinates
+        context.save();
+
+        context.translate(this.position.x, this.position.y);
+
+        // scaling particle
+        context.scale(this.scale, this.scale);
+
+        // drawing a filled circle in the particle's local space
+        context.beginPath();
+        context.arc(-this.radius / 2, -this.radius / 2, this.radius, 0, Math.PI * 2, true);
+        context.closePath();
+
+        context.fillStyle = this.color;
+        context.fill();
+
+        context.restore();
     }
 
-    return bullet;
-}
-
-
-/*
- * Enemy Manager
- */
-var enemyManager = new GameObject();
-enemyManager.name = "Enemy Manager";
-enemyManager.isVisible = false;
-enemyManager.spawnRate = 0.5;
-enemyManager.spawnTimer = 0;
-enemyManager.update = function (deltaTime)
-{
-    this.spawnTimer += deltaTime;
-    if (this.spawnTimer >= this.spawnRate) {
-        var randomPos = new Vector2();
-        randomPos.x = random(0, canvas.width);
-        randomPos.y = random(0, canvas.height);
-
-        var enemy = new Enemy();
-        enemy.position = randomPos;
-        enemy.speed = random(50, 80);
-        
-        this.spawnTimer = 0;
-    }
-}
-
-/*
- * Enemy GameObject
- */
-function Enemy()
-{
-    var enemy = new GameObject();
-    enemy.name = "Enemy";
-    enemy.tag = "Enemy";
-    enemy.color = "red";
-    enemy.speed = 20.0;
-    enemy.damage = 1.0;
-    enemy.attackRate = 1.0;
-    enemy.attackTimer = 0;
-    enemy.update = function (deltaTime)
-    {
-        var direction = player.position.Minus(this.position);
-        direction = direction.GetNormal();
-
-        this.rotation = DirectionToAngle(direction);
-
-        this.position.x += direction.x * this.speed * deltaTime;
-        this.position.y += direction.y * this.speed * deltaTime;
-
-        this.attackTimer += deltaTime;
-    }
-    enemy.onCollisionStay = function (col)
-    {
-        if (col.tag == "Player") {
-            if (this.attackTimer >= this.attackRate)
-            {
-                col.health -= this.damage;
-                this.attackTimer = 0;
-            }
-        }
-    }
-    return enemy;
-}
-
-
-/*
- * Crosshair
- */
-
-$('body').css('cursor', 'none');
-var crosshair = new GameObject();
-crosshair.color = "red";
-crosshair.radius = 30;
-crosshair.update = function (deltaTime)
-{
-    this.position = Input.GetMousePosition();
-}
-crosshair.draw = function ()
-{
-    context.save();
-    context.translate(this.position.x, this.position.y);
-    context.scale(this.scale, this.scale);
-
-    // Draw first circle
-    context.beginPath();
-    context.strokeStyle = this.color;
-    context.arc(0, 0, this.radius, 0, Math.PI * 2);
-    context.stroke();
-    context.closePath();
-
-    // Draw second circle
-    context.beginPath();
-    context.fillStyle = this.color;
-    context.arc(0, 0, this.radius * 0.25, 0, Math.PI * 2);
-    context.fill();
-    context.closePath();
-
-    context.restore();
+    return particle;
 }
 function Vector2(x, y)
 {
@@ -10497,4 +10271,257 @@ function Vector2(x, y)
 function DirectionToAngle(direction)
 {
     return Math.atan2(direction.y, direction.x);
+}
+
+/*
+ * Basic explosion, all particles move and shrink at the same speed
+ * 
+ * Parameter : explosion center position
+ */
+function CreateExplosion(position, count, speed, color)
+{
+    // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
+    for (var i = 0; i < count; i++)
+    {
+        var particle = Particle();
+        particle.speed = speed;
+        particle.color = color;
+       
+        // Particle will start at explosion center
+        particle.position = new Vector2(position.x, position.y);
+        particle.velocity.x = random(-particle.speed, particle.speed);
+        particle.velocity.y = random(-particle.speed, particle.speed);
+    }
+}
+/*
+ * Player GameObject
+ */
+var player = new GameObject();
+player.name = "Player 1";
+player.tag = "Player";
+player.color = "blue";
+player.speed = 200;
+player.shootRate = 0.15;
+player.shootTimer = 0;
+player.health = 100;
+
+player.onCollisionStay = function (col)
+{
+    console.log(this.health);
+}
+
+player.update = function (deltaTime)
+{
+    var mousePos = Input.GetMousePosition();
+    var direction = new Vector2(0, 0);
+    direction = mousePos.Minus(this.position);
+    direction = direction.GetNormal();
+    this.rotation = DirectionToAngle(direction);
+
+    // Have a shoot timer that counts up in seconds using deltaTIme
+    this.shootTimer += deltaTime;
+    // If the shoot timer has reached the shoot rate
+    if (this.shootTimer >= this.shootRate) {
+        // Check if the space button was pressed
+        if (Input.GetMouseButtonDown('left')) {
+            // If it was, shoot the bullet
+            this.shoot(direction);
+
+            // Reset the timer
+            this.shootTimer = 0;
+
+            // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
+            // That's because we want to reset the timer AFTER we shoot the weapon.
+        }
+    }
+
+    // Movement in different directions
+    if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
+        this.position.x -= this.speed * deltaTime;
+    }
+    if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
+        this.position.x += this.speed * deltaTime;
+    }
+    if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
+        this.position.y -= this.speed * deltaTime;
+    }
+    if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
+        this.position.y += this.speed * deltaTime;
+    }
+
+    // Clamp the value of the player's movment so that they can 
+    this.position.x = Math.min(Math.max(this.position.x, 0), canvas.width - this.width);
+    this.position.y = Math.min(Math.max(this.position.y, 0), canvas.height - this.height);
+};
+// Shoots a bullet
+player.shoot = function (direction)
+{
+    // Pre-set the bullet's position to the middle of the player 
+    // That way it fires from the center of the player
+    var bulletPosition = new Vector2(this.position.x, this.position.y);
+
+    // Calculate velocity to be the normal of the direction 
+    // from the player to the mouse
+    var mousePos = Input.GetMousePosition();
+
+    // Create a new bullet using the 'Bullet' function
+    var bullet = new Bullet();
+    bullet.position = bulletPosition;
+    bullet.speed = 1000;
+    bullet.scale = 0.5;
+    bullet.rotation = this.rotation;
+    bullet.velocity = direction;
+
+    var fireSound = new Audio("resources/fire.wav");
+    fireSound.play();
+};
+
+/*
+ * Bullets
+ */
+
+// Bullet object function
+function Bullet()
+{
+    var bullet = new GameObject();
+
+    bullet.color = "purple";
+    bullet.speed = 1.0;
+    bullet.direction = new Vector2(0, 0);
+
+    bullet.isWithinBounds = function ()
+{
+        var pos = this.position;
+        if (pos.x >= 0 && pos.x <= canvas.width &&
+            pos.y >= 0 && pos.y <= canvas.height) {
+            return true;
+        }
+
+        CreateExplosion(this.position, 2, 40, "#525252");
+        CreateExplosion(this.position, 2, 60, "#FFA318");
+        return false;
+    };
+
+    bullet.update = function ()
+{
+        this.position.x += this.velocity.x * this.speed * deltaTime;
+        this.position.y += this.velocity.y * this.speed * deltaTime;
+        if (!this.isWithinBounds()) {
+            var bulletSound = new Audio("resources/explosion.wav");
+            bulletSound.play();
+            Destroy(this);
+        }
+    };
+
+    bullet.onCollisionStay = function (col)
+{
+        if (col.tag == "Enemy") {
+            var bulletSound = new Audio("resources/explosion.wav");
+            bulletSound.play();
+            Destroy(col);
+            Destroy(this);
+            CreateExplosion(col.position, 5, 40, "#525252");
+            CreateExplosion(col.position, 5, 80, "#FFA318");
+        }
+    }
+
+    return bullet;
+}
+
+
+/*
+ * Enemy Manager
+ */
+var enemyManager = new GameObject();
+enemyManager.name = "Enemy Manager";
+enemyManager.isVisible = false;
+enemyManager.spawnRate = 0.5;
+enemyManager.spawnTimer = 0;
+enemyManager.update = function (deltaTime)
+{
+    this.spawnTimer += deltaTime;
+    if (this.spawnTimer >= this.spawnRate) {
+        var randomPos = new Vector2();
+        randomPos.x = random(0, canvas.width);
+        randomPos.y = random(0, canvas.height);
+
+        var enemy = new Enemy();
+        enemy.position = randomPos;
+        enemy.speed = random(50, 80);
+
+        this.spawnTimer = 0;
+    }
+}
+
+/*
+ * Enemy GameObject
+ */
+function Enemy()
+{
+    var enemy = new GameObject();
+    enemy.name = "Enemy";
+    enemy.tag = "Enemy";
+    enemy.color = "red";
+    enemy.speed = 20.0;
+    enemy.damage = 1.0;
+    enemy.attackRate = 1.0;
+    enemy.attackTimer = 0;
+    enemy.update = function (deltaTime)
+{
+        var direction = player.position.Minus(this.position);
+        direction = direction.GetNormal();
+
+        this.rotation = DirectionToAngle(direction);
+
+        this.position.x += direction.x * this.speed * deltaTime;
+        this.position.y += direction.y * this.speed * deltaTime;
+
+        this.attackTimer += deltaTime;
+    }
+    enemy.onCollisionStay = function (col)
+{
+        if (col.tag == "Player") {
+            if (this.attackTimer >= this.attackRate) {
+                col.health -= this.damage;
+                this.attackTimer = 0;
+            }
+        }
+    }
+    return enemy;
+}
+
+
+/*
+ * Crosshair
+ */
+
+$('body').css('cursor', 'none');
+var crosshair = new GameObject();
+crosshair.color = "red";
+crosshair.radius = 30;
+crosshair.update = function (deltaTime)
+{
+    this.position = Input.GetMousePosition();
+}
+crosshair.draw = function ()
+{
+    context.save();
+    context.translate(this.position.x, this.position.y);
+    context.scale(this.scale, this.scale);
+
+    // Draw first circle
+    context.beginPath();
+    context.strokeStyle = this.color;
+    context.arc(0, 0, this.radius, 0, Math.PI * 2);
+    context.stroke();
+    context.closePath();
+
+    // Draw second circle
+    context.beginPath();
+    context.fillStyle = this.color;
+    context.arc(0, 0, this.radius * 0.25, 0, Math.PI * 2);
+    context.fill();
+    context.closePath();
+
+    context.restore();
 }

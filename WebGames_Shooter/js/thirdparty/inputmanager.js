@@ -1,6 +1,15 @@
-﻿// Dictionary of keycodes
-var keys = {};
+﻿/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: inputmanager.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Manages Keyboard & Mouse input
+===============================================*/
 
+// Dictionary of keycodes
+var keys = {};
 keys['w'] = 87;
 keys['a'] = 65;
 keys['s'] = 83;
@@ -11,27 +20,32 @@ keys['up'] = 38;
 keys['right'] = 39;
 keys['down'] = 40;
 
+// >> Add more KeyCodes here <<
+
 // Dictionary of mouse button codes
 var mouseButtons = {};
-
 mouseButtons['left'] = 1;
 mouseButtons['middle'] = 2;
 mouseButtons['right'] = 3;
 
+// >> Add more MouseButtons here <<
+
 // Input object that handles input throughout the project
-var Input = {
+var Input =
+{
     _keysDown: [],
     _mousePosition: new Vector2(),
     _mouseButtonsDown: [],
 
     // Returns the mouse position variable
-    GetMousePosition: function()
+    GetMousePosition: function ()
     {
         return this._mousePosition;
     },
 
     // Function that checks if a mouse button is down and returns true/false
-    GetMouseButtonDown: function(buttonName) {
+    GetMouseButtonDown: function (buttonName)
+    {
         // Try and obtain the button code from the list of mouse buttons defined
         var findButtonCode = mouseButtons[buttonName];
         // Check if the button code exists in the list

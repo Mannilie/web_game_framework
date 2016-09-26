@@ -1,15 +1,29 @@
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: bundleconfig.json
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Automatically generates a single js file
+upon saving.
+===============================================*/
+
 [
   {
-    "outputFileName": "js/main.js",
-    "inputFiles": 
-    [
-      "js/jquery-2.2.2.js",
-      "js/scenemanager.js",
+    "outputFileName": "js/!main.js",
+    "inputFiles": [
+      "js/thirdparty/jquery-2.2.2.js",
+      "js/thirdparty/engine.js",
+      "js/thirdparty/gameobject.js",
+      "js/thirdparty/inputmanager.js",
+      "js/thirdparty/particle.js",
+      "js/thirdparty/vector2.js",
+      /* Place new scripts here seperated by commas.
+         (e.g. "js/newfile.js") 
+      */
       "js/explosions.js",
-      "js/gameobject.js",
-      "js/input.js",
-      "js/scene.js",
-      "js/vector2.js"
+      "js/level01.js"
     ]
   }
 ]

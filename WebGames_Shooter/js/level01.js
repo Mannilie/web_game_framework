@@ -1,4 +1,3 @@
-
 /*
  * Player GameObject
  */
@@ -27,40 +26,34 @@ player.update = function (deltaTime)
     // Have a shoot timer that counts up in seconds using deltaTIme
     this.shootTimer += deltaTime;
     // If the shoot timer has reached the shoot rate
-    if (this.shootTimer >= this.shootRate)
-    {
+    if (this.shootTimer >= this.shootRate) {
         // Check if the space button was pressed
-        if (Input.GetMouseButtonDown('left'))
-        {
+        if (Input.GetMouseButtonDown('left')) {
             // If it was, shoot the bullet
             this.shoot(direction);
-    
+
             // Reset the timer
             this.shootTimer = 0;
-    
+
             // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
             // That's because we want to reset the timer AFTER we shoot the weapon.
         }
     }
-    
+
     // Movement in different directions
-    if (Input.GetKeyDown('left') || Input.GetKeyDown('a'))
-    {
+    if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
         this.position.x -= this.speed * deltaTime;
     }
-    if (Input.GetKeyDown('right') || Input.GetKeyDown('d'))
-    {
+    if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
         this.position.x += this.speed * deltaTime;
     }
-    if (Input.GetKeyDown('up') || Input.GetKeyDown('w'))
-    {
+    if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
         this.position.y -= this.speed * deltaTime;
     }
-    if (Input.GetKeyDown('down') || Input.GetKeyDown('s'))
-    {
+    if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
         this.position.y += this.speed * deltaTime;
     }
-    
+
     // Clamp the value of the player's movment so that they can 
     this.position.x = Math.min(Math.max(this.position.x, 0), canvas.width - this.width);
     this.position.y = Math.min(Math.max(this.position.y, 0), canvas.height - this.height);
@@ -100,9 +93,9 @@ function Bullet()
     bullet.color = "purple";
     bullet.speed = 1.0;
     bullet.direction = new Vector2(0, 0);
-    
+
     bullet.isWithinBounds = function ()
-    {
+{
         var pos = this.position;
         if (pos.x >= 0 && pos.x <= canvas.width &&
             pos.y >= 0 && pos.y <= canvas.height) {
@@ -113,23 +106,21 @@ function Bullet()
         CreateExplosion(this.position, 2, 60, "#FFA318");
         return false;
     };
-    
+
     bullet.update = function ()
-    {
+{
         this.position.x += this.velocity.x * this.speed * deltaTime;
         this.position.y += this.velocity.y * this.speed * deltaTime;
-        if (!this.isWithinBounds())
-        {
+        if (!this.isWithinBounds()) {
             var bulletSound = new Audio("resources/explosion.wav");
             bulletSound.play();
             Destroy(this);
         }
     };
-    
+
     bullet.onCollisionStay = function (col)
-    {
-        if (col.tag == "Enemy")
-        {
+{
+        if (col.tag == "Enemy") {
             var bulletSound = new Audio("resources/explosion.wav");
             bulletSound.play();
             Destroy(col);
@@ -162,7 +153,7 @@ enemyManager.update = function (deltaTime)
         var enemy = new Enemy();
         enemy.position = randomPos;
         enemy.speed = random(50, 80);
-        
+
         this.spawnTimer = 0;
     }
 }
@@ -181,7 +172,7 @@ function Enemy()
     enemy.attackRate = 1.0;
     enemy.attackTimer = 0;
     enemy.update = function (deltaTime)
-    {
+{
         var direction = player.position.Minus(this.position);
         direction = direction.GetNormal();
 
@@ -193,10 +184,9 @@ function Enemy()
         this.attackTimer += deltaTime;
     }
     enemy.onCollisionStay = function (col)
-    {
+{
         if (col.tag == "Player") {
-            if (this.attackTimer >= this.attackRate)
-            {
+            if (this.attackTimer >= this.attackRate) {
                 col.health -= this.damage;
                 this.attackTimer = 0;
             }

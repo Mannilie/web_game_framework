@@ -1,3 +1,13 @@
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: engine.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Updates the game, physics & time
+===============================================*/
+
 // Setup frames per second (cap)
 var FPS = 60;
 var debugging = true;
@@ -15,7 +25,6 @@ var deltaTime = 0;
 
 // Define the clear color
 var CLEAR_COLOR = "white";
-
 var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
 
 // Updates all elements in the game
@@ -35,24 +44,23 @@ function Update()
 
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++)
-    {
+{
         gameObjects[i].update(deltaTime);
     }
 }
-
 function HandleCollisions()
 {
     for (var x = 0; x < gameObjects.length; x++)
-    {
+{
         for (var y = 0; y < gameObjects.length; y++)
-        {
+{
             var colA = gameObjects[x];
             var colB = gameObjects[y];
             if (!Object.is(colA, colB) &&
                 colA.isVisible && colB.isVisible)
-            {
+{
                 if (Collides(colA, colB))
-                {
+{
                     // Collision is touching
                     colA.onCollisionStay(colB);
                     colB.onCollisionStay(colA);
@@ -61,31 +69,27 @@ function HandleCollisions()
         }
     }
 }
-
 function Collides(colA, colB)
 {
     if (Math.abs(colA.position.x - colB.position.x) < colA.getWidth() / 2 + colB.getWidth() / 2)
-    {
+{
         if (Math.abs(colA.position.y - colB.position.y) < colA.getHeight() / 2 + colB.getHeight() / 2)
-        {
+{
             return true;
         }
     }
     return false;
 }
 
-/*
- * Debugging
- */
-
+/* Debugging */
 $('#content').append("<ul id='debugger'></ul>");
 var Debug = {
     log: function (text)
-    {
+{
         $('#debugger').append("<li>" + text + "</li>");
     },
     clear: function (text)
-    {
+{
         $('#debugger').empty();
     }
 }
@@ -107,7 +111,6 @@ function Draw()
         Debug.log(gameObjects[i].name);
     }
 }
-
 function Destroy(gameObject)
 {
     // If a game object is no longer active, remove it from the list
@@ -115,6 +118,14 @@ function Destroy(gameObject)
     {
         return !Object.is(gameObject, object);
     });
+}
+
+
+// Helper methods
+function random(min, max)
+{
+    // Randomizes between min and max values
+    return min + Math.random() * (max - min);
 }
 
 // Set interval will call the functions at a... set interval (in milliseconds)

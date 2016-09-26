@@ -1,3 +1,13 @@
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: style.css
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Defines the style of the page
+===============================================*/
+
 body
 {
     width: 100%;
@@ -7,12 +17,13 @@ body
     overflow: hidden;
 }
 
-#content 
+#content
 {
     position: relative;
 }
 
-ul {
+ul
+{
     -moz-user-select: none;
     -ms-user-select: none;
     -webkit-user-select: none;
