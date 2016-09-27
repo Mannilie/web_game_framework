@@ -2,7 +2,7 @@
 {
     var baseShape =
     {
-        position: new Vector2(),
+        position: new Vector(),
         color: "black",
         isFilled: false,
         lineWidth: 1
@@ -20,7 +20,7 @@ function Circle()
 function Box()
 {
     var box = new BaseShape();
-    box.size = new Vector2();
+    box.size = new Vector();
     return box;
 }
 
@@ -105,7 +105,7 @@ Gizmos.AddCircle = function (position, radius, color, isFilled, lineWidth)
     if (debugging) {
         if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
 
-        if (position == null) { position = new Vector2(); }
+        if (position == null) { position = new Vector(); }
         if (radius == null) { radius = 5; }
         if (color == null) { color = "black"; }
         if (isFilled == null) { isFilled = true; }
@@ -125,8 +125,8 @@ Gizmos.AddBox = function (position, size, rotation, color, isFilled, lineWidth)
     if (debugging) {
         if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
 
-        if (position == null) { position = new Vector2(); }
-        if (size == null) { size = new Vector2(10, 10); }
+        if (position == null) { position = new Vector(); }
+        if (size == null) { size = new Vector(10, 10); }
         if (rotation == null) { rotation = 0; }
         if (color == null) { color = "black"; }
         if (isFilled == null) { isFilled = true; }

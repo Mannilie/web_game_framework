@@ -8,24 +8,30 @@ Copyright (c) 2016 Emmanuel Vaccaro
 @brief: Component that renders sprites
 ===============================================*/
 
-function Renderer()
-{
-    var renderer = new Component();
-    //renderer.type.push('Renderer');
-    return renderer;
-}
+class Renderer extends Component {}
 
-function SpriteRenderer(file)
+class SpriteRenderer extends Renderer
 {
-    var spriteRenderer = new Renderer();
-    //spriteRenderer.type.push('SpriteRenderer');
-    spriteRenderer.enabled = true;
-    spriteRenderer.color = 'blue';
-    spriteRenderer.sprite = new Sprite(file);
-    spriteRenderer.update = function (deltaTime) { };
-    spriteRenderer.draw = function ()
+    constructor(file) 
     {
-        if (this.enabled) {
+        super();
+        this.enabled = true;
+        this.color = 'blue';
+        this.sprite = new Sprite(file);
+    }
+    Start()
+    {
+        this.sprite.Start();
+    }
+    //spriteRenderer.type.push('SpriteRenderer');
+    Update()
+    {
+
+    }
+    Draw()
+    {
+        if (this.enabled)
+        {
             // Use this function to draw elements
             context.save();
             context.translate(this.transform.position.x, this.transform.position.y);
@@ -36,50 +42,51 @@ function SpriteRenderer(file)
             context.rotate(this.transform.rotation);
             //context.translate(-this.position.x, -this.position.y);
             
-            this.sprite.draw();
+            this.sprite.Draw();
             
             context.restore();
         }
-    };
-    spriteRenderer.onCollisionStay = function (collidedObject)
+    }
+    OnCollisionStay(collidedObject)
     {
         // Use this function to handle collision response
-    };
-
-    return spriteRenderer;
+    }
 }
 
 var loadedImages = [];
 
-function Sprite(file)
+class Sprite
 {
-    if (file == null) { file = 'default.png'; }
-    var loadedImage = loadedImages[file];
-    if (loadedImage == null)
+    constructor(file)
     {
-        loadedImage = loadedImages['default.png'];
-    }
-    var sprite =
-    {
-        name: file,
-        width: loadedImage.width,
-        height: loadedImage.height,
-        src: spriteFolderPath + file,
-        color: 'blue',
-        isLoaded: false,
-        image: loadedImage,
-        draw: function ()
-        {
-            if (this.image != null) {
-                context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
-            }
+        this.file = file;
+        var loadedImage = loadedImages[this.file];
+        if (loadedImage == null) {
+            loadedImage = loadedImages['default.png'];
         }
+        this.width = loadedImage ? loadedImage.width :  10;
+        this.height = loadedImage ? loadedImage.height : 10;
+        this.src = spriteFolderPath + file;
+        this.color = 'blue';
+        this.isLoaded = false;
+    }
+     
+    Start()
+    {
+        if (this.file == null) { this.file = 'default.png'; }
+        var loadedImage = loadedImages[this.file];
+        if (loadedImage == null) {
+            loadedImage = loadedImages['default.png'];
+        }
+        this.image = loadedImage;
+        this.width = loadedImage.width;
+        this.height = loadedImage.height;
     }
 
-    sprite.image.onload = function ()
+    Draw()
     {
-        sprite.width = this.width;
-        sprite.height = this.height;
+        if (this.image != null) {
+            context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+        }
     }
-    return sprite;
 }

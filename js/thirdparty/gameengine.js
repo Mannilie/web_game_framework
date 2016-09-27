@@ -1,441 +1,3 @@
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: gameobject.js
-@date: 25/09/2016
-@author: Emmanuel Vaccaro
-@brief: Class object that defines a GameObject 
-entity
-===============================================*/
-
-// List of gameobjects in the scene
-var gameObjects = [];
-
-/*
- * Object class
- */
-var instanceId = 0;
-function BaseObject()
-{
-    var objectId = instanceId++;
-    var object =
-    {
-        transform: null,
-        gameObject: null,
-        types: [],
-        instanceId: objectId,
-        name: 'BaseObject ' + this.instanceId,
-        Start: function() {},
-        update: function (deltaTime) { },
-        draw: function () { },
-        onCollisionStay: function (col) {},
-        CompareType: function(type) {
-            for (var i = 0; i < this.types.length; i++) {
-                if (this.types[i] == type) {
-                    return true;
-                }
-            }
-            return false;
-        },
-        ToTypes: function ()
-        {
-            return this.types;
-        }
-    }
-    
-    var currentCaller = arguments.callee;
-    while (currentCaller != null)
-    {
-        var callerName = currentCaller.toString();
-        callerName = callerName.substr('function '.length);
-        callerName = callerName.substr(0, callerName.indexOf('('));
-
-        if (callerName != "")
-        {
-            object.types.push(callerName);
-            currentCaller = currentCaller.caller;
-        } else {
-            currentCaller = null;
-        }
-
-    }
-
-    return object;
-}
-
-function Component()
-{
-    var component = new BaseObject();
-    component.InitializeComponent = function () {}
-    return component;
-}
-
-/*
- * GameObject class 
- */
-function GameObject()
-{
-    var gameObject = new BaseObject();
-    gameObject.name = 'GameObject ' + gameObject.instanceId; // to distinguish between gameobjects
-    gameObject.transform = new Transform();
-    gameObject.velocity = new Vector2();
-    gameObject.isActive = true;
-    gameObject.tag = 'untagged',
-    gameObject.layer = 'none',
-    gameObject.components  = [];
-    gameObject.getWidth  = function() {
-        return this.width * this.scale;
-    };
-    gameObject.getHeight = function() {
-        return this.height * this.scale;
-    },
-    gameObject.Start = function ()
-    {
-        this.transform.gameObject = this;
-        this.transform.transform = this.transform;
-        for (var i = 0; i < this.components.length; i++) {
-            this.components[i].Start();
-        }
-    }
-    gameObject.update = function (deltaTime)
-    {
-        this.transform.update(deltaTime);
-        //console.log("You must override the 'update' function for " + this.name);
-        for (var i = 0; i < this.components.length; i++)
-        {
-            this.components[i].update(deltaTime);
-        }
-    },
-    gameObject.draw = function ()
-    {
-        if (this.isActive)
-        {
-            for (var i = 0; i < this.components.length; i++) {
-                this.components[i].draw();
-            }
-        }
-    },
-    gameObject.onCollisionStay = function(col) {
-        // Use this function to handle collision response
-        for (var i = 0; i < this.components.length; i++) {
-            this.components[i].onCollisionStay(col);
-        }
-    },
-    gameObject.AddComponent = function (component)
-    {
-        component.gameObject = this;
-        component.transform = this.transform;
-        component.InitializeComponent();
-        component.Start();
-        this.components.push(component);
-    }
-    gameObject.GetComponent = function (componentType)
-    {
-        for (var i = 0; i < this.components.length; i++)
-        {
-            var component = this.components[i];
-            if (component.CompareType(componentType)) {
-                return this.components[i];
-            }
-        }
-        return null;
-    }
-    gameObject.GetComponents = function (componentType)
-    {
-        var components = [];
-        var isFound = false;
-        for (var i = 0; i < this.components.length; i++) {
-            var typeA = componentType;
-            var typeB = this.components[i].ToType();
-            if (typeA == typeB) {
-                components.push(this.components[i]);
-                isFound = true;
-            }
-        }
-        if (isFound) {
-            return components;
-        }
-        return null;
-    }
-    
-    // Add to gameObjects list
-    gameObjects.push(gameObject);
-
-    return gameObject;
-}
-function BaseShape()
-{
-    var baseShape =
-    {
-        position: new Vector2(),
-        color: "black",
-        isFilled: false,
-        lineWidth: 1
-    }
-    return baseShape;
-}
-
-function Circle()
-{
-    var circle = new BaseShape();
-    circle.radius = 1;
-    return circle;
-}
-
-function Box()
-{
-    var box = new BaseShape();
-    box.size = new Vector2();
-    return box;
-}
-
-function Gizmos() { }
-
-Gizmos.boxes = [];
-Gizmos.circles = [];
-
-Gizmos.Draw = function ()
-{
-    if (debugging) {
-        this.DrawBoxes();
-        this.DrawCircles();
-    }
-}
-
-Gizmos.DrawBoxes = function ()
-{
-    for (var i = 0; i < this.boxes.length; i++) {
-        var box = this.boxes[i];
-        // Use this function to draw elements
-        context.save();
-        context.translate(box.position.x, box.position.y);
-
-        context.rotate(box.rotation);
-
-        context.lineWidth = box.lineWidth;
-        context.fillStyle = box.color;
-        context.strokeStyle = box.color;
-
-        context.beginPath();
-        context.rect(-box.size.x / 2, -box.size.x / 2, box.size.x, box.size.y);
-        context.closePath();
-
-        if (box.isFilled) {
-            context.fill();
-        } else {
-            context.stroke();
-        }
-
-        context.restore();
-    }
-    this.boxes = [];
-}
-
-Gizmos.DrawCircles = function ()
-{
-    for (var i = 0; i < this.circles.length; i++) {
-
-        var circle = this.circles[i];
-        if (circle.radius > 0) {
-
-            // Use this function to draw elements
-            context.save();
-            context.translate(circle.position.x, circle.position.y);
-
-            context.scale(1, 1);
-
-            context.lineWidth = circle.lineWidth;
-            context.fillStyle = circle.color;
-            context.strokeStyle = circle.color;
-
-            context.beginPath();
-            context.arc(0, 0, circle.radius, 0, 2 * Math.PI);
-            context.closePath();
-
-
-            if (circle.isFilled) {
-                context.fill();
-            } else {
-                context.stroke();
-            }
-
-            context.restore();
-        }
-    }
-    this.circles = [];
-}
-
-Gizmos.AddCircle = function (position, radius, color, isFilled, lineWidth)
-{
-    if (debugging) {
-        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
-
-        if (position == null) { position = new Vector2(); }
-        if (radius == null) { radius = 5; }
-        if (color == null) { color = "black"; }
-        if (isFilled == null) { isFilled = true; }
-        if (lineWidth == null) { lineWidth = 1; }
-
-        var newCircle = new Circle();
-        newCircle.position = position;
-        newCircle.radius = radius;
-        newCircle.color = color;
-        newCircle.isFilled = isFilled;
-        newCircle.lineWidth = lineWidth;
-        this.circles.push(newCircle);
-    }
-}
-Gizmos.AddBox = function (position, size, rotation, color, isFilled, lineWidth)
-{
-    if (debugging) {
-        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
-
-        if (position == null) { position = new Vector2(); }
-        if (size == null) { size = new Vector2(10, 10); }
-        if (rotation == null) { rotation = 0; }
-        if (color == null) { color = "black"; }
-        if (isFilled == null) { isFilled = true; }
-        if (lineWidth == null) { lineWidth = 1; }
-
-        var newBox = new Box();
-        newBox.position = position;
-        newBox.size = size;
-        newBox.rotation = rotation;
-        newBox.color = color;
-        newBox.isFilled = isFilled;
-        newBox.lineWidth = lineWidth;
-        this.boxes.push(newBox);
-    }
-}
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: inputmanager.js
-@date: 24/03/2016
-@author: Emmanuel Vaccaro
-@brief: Manages Keyboard & Mouse input
-===============================================*/
-
-// Dictionary of keycodes
-var keys = {};
-keys['w'] = 87;
-keys['a'] = 65;
-keys['s'] = 83;
-keys['d'] = 68;
-keys['space'] = 32;
-keys['left'] = 37;
-keys['up'] = 38;
-keys['right'] = 39;
-keys['down'] = 40;
-
-// >> Add more KeyCodes here <<
-
-// Dictionary of mouse button codes
-var mouseButtons = {};
-mouseButtons['left'] = 1;
-mouseButtons['middle'] = 2;
-mouseButtons['right'] = 3;
-
-// >> Add more MouseButtons here <<
-
-// Input object that handles input throughout the project
-var Input =
-{
-    _keysDown: [],
-    _mousePosition: new Vector2(),
-    _mouseButtonsDown: [],
-
-    // Returns the mouse position variable
-    GetMousePosition: function ()
-    {
-        return this._mousePosition;
-    },
-
-    // Function that checks if a mouse button is down and returns true/false
-    GetMouseButtonDown: function (buttonName)
-    {
-        // Try and obtain the button code from the list of mouse buttons defined
-        var findButtonCode = mouseButtons[buttonName];
-        // Check if the button code exists in the list
-        if (findButtonCode != undefined) {
-            // Check if the button is in the list of mouse buttons down
-            if (this._mouseButtonsDown.includes(findButtonCode)) {
-                // The button is down!
-                return true;
-            }
-        }
-        // The button is NOT down!
-        return false;
-    },
-
-    // Function that checks if a key is down and returns true/false
-    GetKeyDown: function (keyName)
-    {
-        // Try and obtain the keycode from the list of keys defined
-        var findKeyCode = keys[keyName];
-        // Check if the keycode exists in the list
-        if (findKeyCode != undefined) {
-            // Check if the key is in the list of keys down
-            if (this._keysDown.includes(findKeyCode)) {
-                // The key is down!
-                return true;
-            }
-        } else {
-            // Print error message otherwise
-            console.error("The key name '" + keyName + "' is not defined inside of 'keys'");
-        }
-        // The key is NOT down
-        return false;
-    }
-}
-
-/*
- * Document events
- */
-
-// Add an event to the document that gets the mouse position
-$(document).mousemove(function (event)
-{
-    // Set the mouse positions
-    Input._mousePosition.x = event.pageX;
-    Input._mousePosition.y = event.pageY;
-});
-
-// Add a mousedown event to test for which buttons are down
-$(document).mousedown(function (event)
-{
-    // Push the button that is down onto list
-    Input._mouseButtonsDown.push(event.which);
-});
-
-// Add a mouseup event to test for mouse buttons which are up
-$(document).mouseup(function (event)
-{
-    // Remove the key that is up from the keysDown list
-    Input._mouseButtonsDown = Input._mouseButtonsDown.filter(function (buttonCode)
-    {
-        return buttonCode != event.which;
-    });
-})
-
-// Add a keydown event to test for keys that are down
-$(document).keydown(function (event)
-{
-    // Push the key that is down onto list
-    Input._keysDown.push(event.keyCode);
-});
-
-// Add a keyup event to test for keys that are up
-$(document).keyup(function (event)
-{
-    // Remove the key that is up from the keysDown list
-    Input._keysDown = Input._keysDown.filter(function (keyCode)
-    {
-        return keyCode != event.keyCode;
-    });
-});
 /*!
  * jQuery JavaScript Library v2.2.2
  * http://jquery.com/
@@ -10279,6 +9841,692 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
+Object.prototype.toType = function ()
+{
+    var funcNameRegex = /class (.{1,})\(/;
+    var results = (funcNameRegex).exec((this).constructor.toString());
+    return (results && results.length > 1) ? results[1] : "";
+};
+
+Object.prototype.clone = function ()
+{
+    var that = this;
+    var temp = new GameObject();//function temporary() { return that.apply(this, arguments); };
+    for (var key in this) {
+        if (this.hasOwnProperty(key)) {
+            temp[key] = this[key];
+        }
+    }
+    return temp;
+};
+
+var engineInitialized = false;
+class Vector
+{
+    constructor(x, y, z)
+    {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+    }
+    negative()
+    {
+        return new Vector(-this.x, -this.y, -this.z);
+    }
+    add(v)
+    {
+        if (v instanceof Vector) return new Vector(this.x + v.x, this.y + v.y, this.z + v.z);
+        else return new Vector(this.x + v, this.y + v, this.z + v);
+    }
+    subtract(v)
+    {
+        if (v instanceof Vector) return new Vector(this.x - v.x, this.y - v.y, this.z - v.z);
+        else return new Vector(this.x - v, this.y - v, this.z - v);
+    }
+    multiply(v)
+    {
+        if (v instanceof Vector) return new Vector(this.x * v.x, this.y * v.y, this.z * v.z);
+        else return new Vector(this.x * v, this.y * v, this.z * v);
+    }
+    divide(v)
+    {
+        if (v instanceof Vector) return new Vector(this.x / v.x, this.y / v.y, this.z / v.z);
+        else return new Vector(this.x / v, this.y / v, this.z / v);
+    }
+    normalized()
+    {
+        var length = this.length();
+        if (length > 0) {
+            return new Vector(this.x / length, this.y / length, this.z / length);
+        }
+        return new Vector(0, 0, 0);
+    }
+    equals(v)
+    {
+        return this.x == v.x && this.y == v.y && this.z == v.z;
+    }
+    dot(v)
+    {
+        return this.x * v.x + this.y * v.y + this.z * v.z;
+    }
+    cross(v)
+    {
+        return new Vector(
+          this.y * v.z - this.z * v.y,
+          this.z * v.x - this.x * v.z,
+          this.x * v.y - this.y * v.x
+        );
+    }
+    length()
+    {
+        return Math.sqrt(this.dot(this));
+    }
+    unit()
+    {
+        return this.divide(this.length());
+    }
+    min()
+    {
+        return Math.min(Math.min(this.x, this.y), this.z);
+    }
+    max()
+    {
+        return Math.max(Math.max(this.x, this.y), this.z);
+    }
+    toAngles()
+    {
+        return {
+            theta: Math.atan2(this.z, this.x),
+            phi: Math.asin(this.y / this.length()),
+            pi: Math.atan2(this.y, this.x)
+        };
+    }
+    angleTo(a)
+    {
+        return Math.acos(this.dot(a) / (this.length() * a.length()));
+    }
+    toArray(n)
+    {
+        return [this.x, this.y, this.z].slice(0, n || 3);
+    }
+    clone()
+    {
+        return new Vector(this.x, this.y, this.z);
+    }
+    init(x, y, z) {
+        this.x = x; this.y = y; this.z = z;
+        return this;
+    }
+}
+
+
+Vector.negative = function (a, b)
+{
+    b.x = -a.x; b.y = -a.y; b.z = -a.z;
+    return b;
+};
+Vector.add = function (a, b, c)
+{
+    if (b instanceof Vector) { c.x = a.x + b.x; c.y = a.y + b.y; c.z = a.z + b.z; }
+    else { c.x = a.x + b; c.y = a.y + b; c.z = a.z + b; }
+    return c;
+};
+Vector.subtract = function (a, b, c)
+{
+    if (b instanceof Vector) { c.x = a.x - b.x; c.y = a.y - b.y; c.z = a.z - b.z; }
+    else { c.x = a.x - b; c.y = a.y - b; c.z = a.z - b; }
+    return c;
+};
+Vector.multiply = function (a, b, c)
+{
+    if (b instanceof Vector) { c.x = a.x * b.x; c.y = a.y * b.y; c.z = a.z * b.z; }
+    else { c.x = a.x * b; c.y = a.y * b; c.z = a.z * b; }
+    return c;
+};
+Vector.divide = function (a, b, c)
+{
+    if (b instanceof Vector) { c.x = a.x / b.x; c.y = a.y / b.y; c.z = a.z / b.z; }
+    else { c.x = a.x / b; c.y = a.y / b; c.z = a.z / b; }
+    return c;
+};
+Vector.cross = function (a, b, c)
+{
+    c.x = a.y * b.z - a.z * b.y;
+    c.y = a.z * b.x - a.x * b.z;
+    c.z = a.x * b.y - a.y * b.x;
+    return c;
+};
+Vector.unit = function (a, b)
+{
+    var length = a.length();
+    b.x = a.x / length;
+    b.y = a.y / length;
+    b.z = a.z / length;
+    return b;
+};
+Vector.fromAngles = function (theta, phi)
+{
+    return new Vector(Math.cos(theta) * Math.cos(phi), Math.sin(phi), Math.sin(theta) * Math.cos(phi));
+};
+Vector.randomDirection = function ()
+{
+    return Vector.fromAngles(Math.random() * Math.PI * 2, Math.asin(Math.random() * 2 - 1));
+};
+Vector.min = function (a, b)
+{
+    return new Vector(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
+};
+Vector.max = function (a, b)
+{
+    return new Vector(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
+};
+Vector.lerp = function (a, b, fraction)
+{
+    return b.subtract(a).multiply(fraction).add(a);
+};
+Vector.fromArray = function (a)
+{
+    return new Vector(a[0], a[1], a[2]);
+};
+Vector.angleBetween = function (a, b)
+{
+    return a.angleTo(b);
+};
+
+
+function Clone() { }
+function clone(obj)
+{
+    Clone.prototype = obj;
+    return new Clone();
+}
+
+function FunctionName(fun)
+{
+    var ret = fun.toString();
+    ret = ret.substr('class '.length);
+    ret = ret.substr(0, ret.indexOf(' '));
+    return ret;
+}
+
+class BaseObject
+{ 
+    constructor()
+    {
+        this.transform = null;
+        this.gameObject = null;
+        this.instanceId = BaseObject.instanceId++;
+        this.name = 'BaseObject ' + this.instanceId;
+    }
+
+    Start()
+    {
+
+    }
+
+    update(deltaTime)
+    {
+
+    }
+
+    Draw()
+    {
+
+    }
+
+    
+    OnCollisionStay(col)
+    {
+
+    }
+
+    Instantiate(gameObject)
+    {
+        /// <summary>Makes a new copy of a GameObject</summary>
+        /// <param name="gameObject" type="GameObject">GameObject to be cloned.</param>
+        var clone = new GameObject(gameObject);
+        gameObjects.push(clone);
+        return clone;
+    }
+
+    Destroy(gameObject)
+    {
+        // If a game object is no longer active, remove it from the list
+        gameObjects = gameObjects.filter(function (object)
+        {
+            return !Object.is(gameObject, object);
+        });
+    }
+}
+
+BaseObject.instanceId = 0;
+BaseObject.Instantiate = function(gameObject)  
+{
+    /// <summary>Makes a new copy of a GameObject</summary>
+    /// <param name="gameObject" type="GameObject">GameObject to be cloned.</param>
+    var clone = new GameObject(gameObject);
+    gameObjects.push(clone);
+    return clone;
+}
+
+BaseObject.Destroy = function(gameObject)
+{
+    // If a game object is no longer active, remove it from the list
+    gameObjects = gameObjects.filter(function (object)
+    {
+        return !Object.is(gameObject, object);
+    });
+}
+
+class Component extends BaseObject
+{
+    constructor()
+    {
+        super();
+        this.enabled = true;
+    }
+    InitializeComponent()
+    {
+    }
+}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: gameobject.js
+@date: 25/09/2016
+@author: Emmanuel Vaccaro
+@brief: Class object that defines a GameObject 
+entity
+===============================================*/
+
+// List of gameobjects in the scene
+var gameObjects = [];
+
+/*
+ * GameObject class 
+ */
+class GameObject extends BaseObject
+{
+    constructor(other) 
+    {
+        super(other);
+        this.name = other ? other.name : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
+        this.velocity = other ? other.velocity : new Vector();
+        this.isActive = other ? other.isActive : true;
+        this.tag = other ? other.tag : 'untagged';
+        this.layer = other ? other.layer : 'none';
+        this.transform = new Transform();
+        this.gameObject = this;
+
+        this.components = [];
+        if (other && other.components)
+        {
+            for (var i = 0; i < other.components.length; i++)
+            {
+                var component = other.components[i];
+                this.AddComponent(component.constructor);
+            }
+        }
+    }
+   
+    Start()
+    {
+        this.transform.gameObject = this;
+        this.transform.transform = this.transform;
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].Start();
+        }
+    }
+    Update()
+    {
+        this.transform.Update();
+        //console.log("You must override the 'update' function for " + this.name);
+        for (var i = 0; i < this.components.length; i++)
+        {
+            this.components[i].Update();
+        }
+    }
+    Draw()
+    {
+        if (this.isActive)
+        {
+            for (var i = 0; i < this.components.length; i++) {
+                this.components[i].Draw();
+            }
+        }
+    }
+    OnCollisionStay(col) {
+        // Use this function to handle collision response
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].OnCollisionStay(col);
+        }
+    }
+    AddComponent(componentType)
+    {
+        var newComponent = null;
+        if (componentType.isFunction()) {
+            newComponent = new componentType();
+        } else {
+            newComponent = componentType;
+        }
+        newComponent.gameObject = this;
+        newComponent.transform = this.transform;
+        newComponent.InitializeComponent();
+
+        if (engineInitialized)
+        {
+            newComponent.Start();
+        }
+
+        this.components.push(newComponent);
+        return newComponent;
+    }
+    GetComponent(componentType)
+    {
+        for (var i = 0; i < this.components.length; i++)
+        {
+            var component = this.components[i];
+            if (component instanceof componentType)
+            {
+                return this.components[i];
+            }
+        }
+        return null;
+    }
+    GetComponents(componentType)
+    {
+        var components = [];
+        var isFound = false;
+        for (var i = 0; i < this.components.length; i++) {
+            if (this.components[i] instanceof componentType) {
+                components.push(this.components[i]);
+                isFound = true;
+            }
+        }
+        if (isFound) {
+            return components;
+        }
+        return null;
+    }
+}
+
+Object.prototype.isFunction = function() {
+    var getType = {};
+    return this && getType.toString.call(this) === '[object Function]';
+}
+function BaseShape()
+{
+    var baseShape =
+    {
+        position: new Vector(),
+        color: "black",
+        isFilled: false,
+        lineWidth: 1
+    }
+    return baseShape;
+}
+
+function Circle()
+{
+    var circle = new BaseShape();
+    circle.radius = 1;
+    return circle;
+}
+
+function Box()
+{
+    var box = new BaseShape();
+    box.size = new Vector();
+    return box;
+}
+
+function Gizmos() { }
+
+Gizmos.boxes = [];
+Gizmos.circles = [];
+
+Gizmos.Draw = function ()
+{
+    if (debugging) {
+        this.DrawBoxes();
+        this.DrawCircles();
+    }
+}
+
+Gizmos.DrawBoxes = function ()
+{
+    for (var i = 0; i < this.boxes.length; i++) {
+        var box = this.boxes[i];
+        // Use this function to draw elements
+        context.save();
+        context.translate(box.position.x, box.position.y);
+
+        context.rotate(box.rotation);
+
+        context.lineWidth = box.lineWidth;
+        context.fillStyle = box.color;
+        context.strokeStyle = box.color;
+
+        context.beginPath();
+        context.rect(-box.size.x / 2, -box.size.x / 2, box.size.x, box.size.y);
+        context.closePath();
+
+        if (box.isFilled) {
+            context.fill();
+        } else {
+            context.stroke();
+        }
+
+        context.restore();
+    }
+    this.boxes = [];
+}
+
+Gizmos.DrawCircles = function ()
+{
+    for (var i = 0; i < this.circles.length; i++) {
+
+        var circle = this.circles[i];
+        if (circle.radius > 0) {
+
+            // Use this function to draw elements
+            context.save();
+            context.translate(circle.position.x, circle.position.y);
+
+            context.scale(1, 1);
+
+            context.lineWidth = circle.lineWidth;
+            context.fillStyle = circle.color;
+            context.strokeStyle = circle.color;
+
+            context.beginPath();
+            context.arc(0, 0, circle.radius, 0, 2 * Math.PI);
+            context.closePath();
+
+
+            if (circle.isFilled) {
+                context.fill();
+            } else {
+                context.stroke();
+            }
+
+            context.restore();
+        }
+    }
+    this.circles = [];
+}
+
+Gizmos.AddCircle = function (position, radius, color, isFilled, lineWidth)
+{
+    if (debugging) {
+        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
+
+        if (position == null) { position = new Vector(); }
+        if (radius == null) { radius = 5; }
+        if (color == null) { color = "black"; }
+        if (isFilled == null) { isFilled = true; }
+        if (lineWidth == null) { lineWidth = 1; }
+
+        var newCircle = new Circle();
+        newCircle.position = position;
+        newCircle.radius = radius;
+        newCircle.color = color;
+        newCircle.isFilled = isFilled;
+        newCircle.lineWidth = lineWidth;
+        this.circles.push(newCircle);
+    }
+}
+Gizmos.AddBox = function (position, size, rotation, color, isFilled, lineWidth)
+{
+    if (debugging) {
+        if (context == null) { console.log("You can only call the 'Gizmos.AddCircle' function within Update"); }
+
+        if (position == null) { position = new Vector(); }
+        if (size == null) { size = new Vector(10, 10); }
+        if (rotation == null) { rotation = 0; }
+        if (color == null) { color = "black"; }
+        if (isFilled == null) { isFilled = true; }
+        if (lineWidth == null) { lineWidth = 1; }
+
+        var newBox = new Box();
+        newBox.position = position;
+        newBox.size = size;
+        newBox.rotation = rotation;
+        newBox.color = color;
+        newBox.isFilled = isFilled;
+        newBox.lineWidth = lineWidth;
+        this.boxes.push(newBox);
+    }
+}
+/*=============================================
+-----------------------------------
+Copyright (c) 2016 Emmanuel Vaccaro
+-----------------------------------
+@file: inputmanager.js
+@date: 24/03/2016
+@author: Emmanuel Vaccaro
+@brief: Manages Keyboard & Mouse input
+===============================================*/
+
+// Dictionary of keycodes
+var keys = {};
+keys['w'] = 87;
+keys['a'] = 65;
+keys['s'] = 83;
+keys['d'] = 68;
+keys['space'] = 32;
+keys['left'] = 37;
+keys['up'] = 38;
+keys['right'] = 39;
+keys['down'] = 40;
+
+// >> Add more KeyCodes here <<
+
+// Dictionary of mouse button codes
+var mouseButtons = {};
+mouseButtons['left'] = 1;
+mouseButtons['middle'] = 2;
+mouseButtons['right'] = 3;
+
+// >> Add more MouseButtons here <<
+
+// Input object that handles input throughout the project
+var Input =
+{
+    _keysDown: [],
+    _mousePosition: new Vector(),
+    _mouseButtonsDown: [],
+
+    // Returns the mouse position variable
+    GetMousePosition: function ()
+    {
+        return this._mousePosition;
+    },
+
+    // Function that checks if a mouse button is down and returns true/false
+    GetMouseButtonDown: function (buttonName)
+    {
+        // Try and obtain the button code from the list of mouse buttons defined
+        var findButtonCode = mouseButtons[buttonName];
+        // Check if the button code exists in the list
+        if (findButtonCode != undefined) {
+            // Check if the button is in the list of mouse buttons down
+            if (this._mouseButtonsDown.includes(findButtonCode)) {
+                // The button is down!
+                return true;
+            }
+        }
+        // The button is NOT down!
+        return false;
+    },
+
+    // Function that checks if a key is down and returns true/false
+    GetKeyDown: function (keyName)
+    {
+        // Try and obtain the keycode from the list of keys defined
+        var findKeyCode = keys[keyName];
+        // Check if the keycode exists in the list
+        if (findKeyCode != undefined) {
+            // Check if the key is in the list of keys down
+            if (this._keysDown.includes(findKeyCode)) {
+                // The key is down!
+                return true;
+            }
+        } else {
+            // Print error message otherwise
+            console.error("The key name '" + keyName + "' is not defined inside of 'keys'");
+        }
+        // The key is NOT down
+        return false;
+    }
+}
+
+/*
+ * Document events
+ */
+
+// Add an event to the document that gets the mouse position
+$(document).mousemove(function (event)
+{
+    // Set the mouse positions
+    Input._mousePosition.x = event.pageX;
+    Input._mousePosition.y = event.pageY;
+});
+
+// Add a mousedown event to test for which buttons are down
+$(document).mousedown(function (event)
+{
+    // Push the button that is down onto list
+    Input._mouseButtonsDown.push(event.which);
+});
+
+// Add a mouseup event to test for mouse buttons which are up
+$(document).mouseup(function (event)
+{
+    // Remove the key that is up from the keysDown list
+    Input._mouseButtonsDown = Input._mouseButtonsDown.filter(function (buttonCode)
+    {
+        return buttonCode != event.which;
+    });
+})
+
+// Add a keydown event to test for keys that are down
+$(document).keydown(function (event)
+{
+    // Push the key that is down onto list
+    Input._keysDown.push(event.keyCode);
+});
+
+// Add a keyup event to test for keys that are up
+$(document).keyup(function (event)
+{
+    // Remove the key that is up from the keysDown list
+    Input._keysDown = Input._keysDown.filter(function (keyCode)
+    {
+        return keyCode != event.keyCode;
+    });
+});
 /*=============================================
 -----------------------------------
 Copyright (c) 2016 Emmanuel Vaccaro
@@ -10288,67 +10536,70 @@ Copyright (c) 2016 Emmanuel Vaccaro
 @author: Emmanuel Vaccaro
 @brief: Simulates physics
 ===============================================*/
-
-function Bounds(width, height)
+class Bounds
 {
-    if (width == null) { width = 10; }
-    if (height == null) { height = 10; }
-    var bounds =
+    constructor(width, height)
     {
-        size: { width: width, height: height },
-        extents: new Vector2(),
-        center: new Vector2(),
-        max: new Vector2(),
-        min: new Vector2(),
+        this.width = width || 10;
+        this.height = height || 10;
+        this.size = { width: width, height: height };
+        this.extents = new Vector();
+        this.center = new Vector();
+        this.max = new Vector();
+        this.min = new Vector();
+
+        this.extents = new Vector(this.size.width / 2, this.size.height / 2);
     }
-    bounds.extents = new Vector2(bounds.size.width / 2, bounds.size.height / 2);
-    return bounds;
 }
 
-function Collider()
+class Collider extends Component
 {
-    var collider = new Component();
-   // collider.type.push('Collider');
-    collider.bounds = new Bounds();
-    collider.enabled = true;
-    return collider;
-}
-
-function BoxCollider()
-{
-    var boxCollider = new Collider();
-   // boxCollider.type.push('BoxCollider');
-    boxCollider.size = new Vector2(10, 10);
-    boxCollider.center = new Vector2();
-    boxCollider.InitializeComponent = function ()
+    constructor() 
     {
-        var renderer = this.gameObject.GetComponent('Renderer');
+        super();
+        this.bounds = new Bounds();
+    }
+}
+
+class BoxCollider extends Collider
+{
+    constructor() 
+    {
+        super();
+        this.size = new Vector(10, 10);
+        this.center = new Vector();
+    }
+    Start()
+    {
+        var renderer = this.gameObject.GetComponent(Renderer);
         if (renderer != null) {
-            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            var spriteRenderer = this.gameObject.GetComponent(SpriteRenderer);
             if (spriteRenderer != null) {
                 var width = spriteRenderer.sprite.width;
                 var height = spriteRenderer.sprite.height;
-                this.size = new Vector2(width, height);
+                this.size = new Vector(width, height);
             }
         }
     }
-    boxCollider.update = function (deltaTime)
+    Update()
     {
         Gizmos.AddBox(this.transform.position, this.size.Multiply(this.transform.scale), 0, "green", false);
     }
-    return boxCollider;
 }
 
-function CircleCollider()
+class CircleCollider extends Collider
 {
-    var circleCollider = new Collider();
-    circleCollider.radius = 50.0;
-    circleCollider.center = new Vector2();
-    circleCollider.InitializeComponent = function ()
+    constructor() 
     {
-        var renderer = this.gameObject.GetComponent('Renderer');
+        super();
+        this.radius = 10.0;
+        this.center = new Vector();
+    }
+    Start()
+    {
+        var renderer = this.gameObject.GetComponent(Renderer);
         if (renderer != null) {
-            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            var spriteRenderer = this.gameObject.GetComponent(SpriteRenderer);
             if (spriteRenderer != null) {
                 var width = spriteRenderer.sprite.width;
                 var height = spriteRenderer.sprite.height;
@@ -10356,11 +10607,10 @@ function CircleCollider()
             }
         }
     }
-    circleCollider.update = function (deltaTime)
+    Update()
     {
         Gizmos.AddCircle(this.transform.position, this.radius * this.transform.scale, "green", false);
     }
-    return circleCollider;
 }
 
 function HandleCollisions()
@@ -10374,8 +10624,8 @@ function HandleCollisions()
             if (gameObjectA != null && gameObjectB != null &&
                 !Object.is(gameObjectA, gameObjectB)) // AND they are not the same
             {
-                var colA = gameObjectA.GetComponent('Collider');
-                var colB = gameObjectB.GetComponent('Collider');
+                var colA = gameObjectA.GetComponent(Collider);
+                var colB = gameObjectB.GetComponent(Collider);
                 // Check if both colliders exist
                 if (colA != null && colB != null &&
                     colA.enabled && colB.enabled) // AND they're both enabled
@@ -10383,8 +10633,8 @@ function HandleCollisions()
                     // Determine if those objects collide with each other
                     if (Collides(colA, colB)) {
                         // Collision is touching
-                        gameObjectA.onCollisionStay(colB);
-                        gameObjectB.onCollisionStay(colA);
+                        gameObjectA.OnCollisionStay(colB);
+                        gameObjectB.OnCollisionStay(colA);
                     }
                 }
             }
@@ -10395,20 +10645,20 @@ function HandleCollisions()
 function Collides(colA, colB)
 {
     // Box to Box
-    if(colA.CompareType('BoxCollider') && colB.CompareType('BoxCollider')) 
+    if(colA instanceof BoxCollider && colB instanceof 'BoxCollider') 
     {
         return BoxToBox(colA, colB);
     }
 
     // Box to Circle || Circle to Box
-    if(colA.CompareType('BoxCollider') && colB.CompareType('CircleCollider') || 
-       colB.CompareType('BoxCollider') && colA.CompareType('CircleCollider')) 
+    if(colA instanceof BoxCollider && colB instanceof CircleCollider || 
+       colB instanceof BoxCollider && colA instanceof CircleCollider) 
     {
         return BoxToCircle(colA, colB);
     }
 
     // Circle to Circle
-    if(colA.CompareType('CircleCollider') && colB.CompareType('CircleCollider')) 
+    if(colA instanceof CircleCollider && colB instanceof CircleCollider) 
     {
         return CircleToCircle(colA, colB);
     }
@@ -10419,8 +10669,12 @@ function Collides(colA, colB)
 
 function BoxToBox(boxA, boxB) 
 {
-    var boxASize = new Vector2(boxA.size.x * boxA.transform.scale, boxA.size.y * boxA.transform.scale);
-    var boxBSize = new Vector2(boxB.size.x * boxB.transform.scale, boxB.size.y * boxB.transform.scale);
+    /// <summary>Determines if two boxes have collided with each other</summary>
+    /// <returns value='1'/>
+    /// <param name="boxA" type="Collider">The first box collider.</param>
+    /// <param name="boxB" type="Collider">The second box collider.</param>
+    var boxASize = new Vector(boxA.size.x * boxA.transform.scale, boxA.size.y * boxA.transform.scale);
+    var boxBSize = new Vector(boxB.size.x * boxB.transform.scale, boxB.size.y * boxB.transform.scale);
     
     if (Math.abs(boxA.transform.position.x - boxB.transform.position.x) < boxASize.x / 2 + boxBSize.x / 2) {
         if (Math.abs(boxA.transform.position.y - boxB.transform.position.y) < boxASize.y / 2 + boxBSize.y / 2) {
@@ -10457,24 +10711,30 @@ Copyright (c) 2016 Emmanuel Vaccaro
 @brief: Component that renders sprites
 ===============================================*/
 
-function Renderer()
-{
-    var renderer = new Component();
-    //renderer.type.push('Renderer');
-    return renderer;
-}
+class Renderer extends Component {}
 
-function SpriteRenderer(file)
+class SpriteRenderer extends Renderer
 {
-    var spriteRenderer = new Renderer();
-    //spriteRenderer.type.push('SpriteRenderer');
-    spriteRenderer.enabled = true;
-    spriteRenderer.color = 'blue';
-    spriteRenderer.sprite = new Sprite(file);
-    spriteRenderer.update = function (deltaTime) { };
-    spriteRenderer.draw = function ()
+    constructor(file) 
     {
-        if (this.enabled) {
+        super();
+        this.enabled = true;
+        this.color = 'blue';
+        this.sprite = new Sprite(file);
+    }
+    Start()
+    {
+        this.sprite.Start();
+    }
+    //spriteRenderer.type.push('SpriteRenderer');
+    Update()
+    {
+
+    }
+    Draw()
+    {
+        if (this.enabled)
+        {
             // Use this function to draw elements
             context.save();
             context.translate(this.transform.position.x, this.transform.position.y);
@@ -10485,52 +10745,53 @@ function SpriteRenderer(file)
             context.rotate(this.transform.rotation);
             //context.translate(-this.position.x, -this.position.y);
             
-            this.sprite.draw();
+            this.sprite.Draw();
             
             context.restore();
         }
-    };
-    spriteRenderer.onCollisionStay = function (collidedObject)
+    }
+    OnCollisionStay(collidedObject)
     {
         // Use this function to handle collision response
-    };
-
-    return spriteRenderer;
+    }
 }
 
 var loadedImages = [];
 
-function Sprite(file)
+class Sprite
 {
-    if (file == null) { file = 'default.png'; }
-    var loadedImage = loadedImages[file];
-    if (loadedImage == null)
+    constructor(file)
     {
-        loadedImage = loadedImages['default.png'];
-    }
-    var sprite =
-    {
-        name: file,
-        width: loadedImage.width,
-        height: loadedImage.height,
-        src: spriteFolderPath + file,
-        color: 'blue',
-        isLoaded: false,
-        image: loadedImage,
-        draw: function ()
-        {
-            if (this.image != null) {
-                context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
-            }
+        this.file = file;
+        var loadedImage = loadedImages[this.file];
+        if (loadedImage == null) {
+            loadedImage = loadedImages['default.png'];
         }
+        this.width = loadedImage ? loadedImage.width :  10;
+        this.height = loadedImage ? loadedImage.height : 10;
+        this.src = spriteFolderPath + file;
+        this.color = 'blue';
+        this.isLoaded = false;
+    }
+     
+    Start()
+    {
+        if (this.file == null) { this.file = 'default.png'; }
+        var loadedImage = loadedImages[this.file];
+        if (loadedImage == null) {
+            loadedImage = loadedImages['default.png'];
+        }
+        this.image = loadedImage;
+        this.width = loadedImage.width;
+        this.height = loadedImage.height;
     }
 
-    sprite.image.onload = function ()
+    Draw()
     {
-        sprite.width = this.width;
-        sprite.height = this.height;
+        if (this.image != null) {
+            context.drawImage(this.image, -this.width / 2, -this.height / 2, this.width, this.height);
+        }
     }
-    return sprite;
 }
 
 /*=============================================
@@ -10548,473 +10809,18 @@ function Transform()
     var transform = new Component();
     // transform.type.push('Transform');
     transform.parent = null;
-    transform.position = new Vector2();
+    transform.position = new Vector();
     transform.rotation = 0;
     transform.scale = 1.0;
-    transform.update = function (deltaTime)
+    transform.Update = function ()
     {
-        if (this.parent != null) {
-            this.position.Add(transform.parent.position);
-            this.rotation += transform.parent.rotation;
+        if (this.parent != null)
+        {
+            //this.position.Add(transform.parent.position);
+            //this.rotation += transform.parent.rotation;
         }
     }
     return transform;
-}
-function Vector2(x, y)
-{
-    if (x == undefined) { x = 0; }
-    if (y == undefined) { y = 0; }
-
-    return {
-        x, y,
-        GetDotProduct: function(other) {
-            return (x * other.x) + (y * other.y);
-        },
-        GetMagnitude: function ()
-        {
-            return Math.sqrt(this.x * this.x + this.y * this.y);
-        },
-        GetNormal: function ()
-        {
-            var result = new Vector2();
-            var magnitude = this.GetMagnitude();
-            if (magnitude != 0) {
-                result.x = this.x / magnitude;
-                result.y = this.y / magnitude;
-            }
-            return result;
-        },
-        Minus: function (other)
-        {
-            var result = new Vector2();
-            result.x = this.x - other.x;
-            result.y = this.y - other.y;
-            return result;
-        },
-        Add: function (other)
-        {
-            var result = new Vector2();
-            result.x = this.x += other.x;
-            result.y = this.y += other.y;
-            return result;
-        },
-        Multiply: function (other)
-        {
-            // Note(Manny): Differenciate between Vector2 & floats somehow
-            var result = new Vector2();
-            result.x = this.x * other;
-            result.y = this.y * other;
-            return result;
-        }
-    };
-}
-
-function DirectionToAngle(direction)
-{
-    return Math.atan2(direction.y, direction.x);
-}
-
-/*
- * Basic explosion, all particles move and shrink at the same speed
- * 
- * Parameter : explosion center position
- */
-function CreateExplosion(position, count, speed, color)
-{
-    // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
-    for (var i = 0; i < count; i++)
-    {
-        var particle = new ParticlePrefab();
-        var particleScript = particle.GetComponent('ParticleScript');
-        particleScript.speed = speed;
-        particleScript.color = color;
-       
-        // Particle will start at explosion center
-        particleScript.transform.position = new Vector2(position.x, position.y);
-        particleScript.velocity.x = random(-particleScript.speed, particleScript.speed);
-        particleScript.velocity.y = random(-particleScript.speed, particleScript.speed);
-    }
-}
-/*
- * Sprites
- */
-var sprites = [
-    'default.png',
-    'player.png'
-];
-
-/*
- * Player GameObject
- */
-function PlayerPrefab()
-{
-    var playerPrefab = new GameObject();
-    playerPrefab.AddComponent(new SpriteRenderer());
-    playerPrefab.AddComponent(new CircleCollider());
-    playerPrefab.AddComponent(new PlayerScript());
-    playerPrefab.name = "Player 1";
-    playerPrefab.tag = "Player";
-    return playerPrefab;
-}
-
-/*
- * Bullets
- */
-
-// Bullet object function
-function BulletPrefab()
-{
-    var bullet = new GameObject();
-    bullet.AddComponent(new SpriteRenderer());
-    bullet.AddComponent(new BulletScript());
-    bullet.AddComponent(new CircleCollider());
-    return bullet;
-}
-
-/*
- * Enemy Manager
- */
-function EnemyManagerPrefab()
-{
-    var enemyManager = new GameObject();
-    enemyManager.name = "Enemy Manager";
-    enemyManager.AddComponent(new EnemyManagerScript());
-    return enemyManager;
-}
-
-/*
- * Enemy GameObject
- */
-function EnemyPrefab()
-{
-    var enemy = new GameObject();
-    enemy.name = "Enemy";
-    enemy.tag = "Enemy";
-    enemy.color = "red";
-    enemy.AddComponent(new EnemyScript());
-    enemy.AddComponent(new SpriteRenderer());
-    enemy.AddComponent(new CircleCollider());
-    return enemy;
-}
-
-/*
- * Crosshair
- */
-
-$('body').css('cursor', 'none');
-
-var crosshair = new GameObject();
-crosshair.AddComponent(new CircleCollider());
-crosshair.color = "red";
-crosshair.radius = 30;
-crosshair.update = function (deltaTime)
-{
-    this.transform.position = Input.GetMousePosition();
-}
-crosshair.draw = function ()
-{
-    context.save();
-    context.translate(this.transform.position.x, this.transform.position.y);
-    context.scale(this.scale, this.scale);
-
-    // Draw first circle
-    context.beginPath();
-    context.strokeStyle = this.color;
-    context.arc(0, 0, this.radius, 0, Math.PI * 2);
-    context.stroke();
-    context.closePath();
-
-    // Draw second circle
-    context.beginPath();
-    context.fillStyle = this.color;
-    context.arc(0, 0, this.radius * 0.25, 0, Math.PI * 2);
-    context.fill();
-    context.closePath();
-
-    context.restore();
-}
-
-var player;
-var enemyManager;
-
-function Start()
-{
-    player = new PlayerPrefab();
-    enemyManager = new EnemyManagerPrefab();
-    player.transform.parent = enemyManager.transform;
-}
-
-function Update()
-{
-
-}
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: particle.js
-@date: 25/03/2016
-@author: Emmanuel Vaccaro
-@brief: Defines a particle GameObject
-===============================================*/
-
-function ParticlePrefab()
-{
-    var particle = new GameObject();
-    particle.AddComponent(new CircleCollider());
-    particle.AddComponent(new ParticleScript());
-    return particle;
-}
-
-function ParticleScript()
-{
-    var particleScript = new Component();
-    particleScript.radius = 20;
-    particleScript.velocity = new Vector2(0, 0);
-    particleScript.scaleSpeed = 1;
-    particleScript.speed = 100.0;
-    particleScript.color = "black";
-    particleScript.Start = function ()
-    {
-        this.transform.scale = 1.0;
-        var circleCollider = this.gameObject.GetComponent('CircleCollider');
-        circleCollider.radius = this.radius;
-    }
-    particleScript.update = function (dt)
-    {
-        // Shrinking
-        this.transform.scale -= this.scaleSpeed * dt;
-
-        if (this.transform.scale <= 0) {
-            Destroy(this.gameObject);
-        }
-
-        // Moving away from explosion center
-        this.transform.position.x += this.velocity.x * dt;
-        this.transform.position.y += this.velocity.y * dt;
-    };
-    particleScript.draw = function ()
-    {
-        // translating the particle's coordinates
-        context.save();
-        // drawing a filled circle in the particle's local space
-        context.translate(this.transform.position.x, this.transform.position.y);
-       
-        // scaling particle
-        context.scale(this.transform.scale, this.transform.scale);
-       
-        context.fillStyle = this.color;
-
-        context.beginPath();
-        context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
-        context.closePath();
-
-        context.fill();
-
-        context.restore();
-    }
-    return particleScript;
-}
-
-/*
- * Scripts for GameObjects go here
- */
-
-function PlayerScript()
-{
-    var playerScript = new Component();
-    playerScript.speed = 200;
-    playerScript.shootRate = 0.05;
-    playerScript.shootTimer = 0;
-    playerScript.health = 100;
-    playerScript.Start = function ()
-    {
-        this.gameObject.tag = "Player";
-        this.transform.scale = 0.4;
-    }
-    playerScript.update = function (deltaTime)
-    {
-        var mousePos = Input.GetMousePosition();
-        var direction = new Vector2(0, 0);
-        direction = mousePos.Minus(this.transform.position);
-        direction = direction.GetNormal();
-        this.transform.rotation = DirectionToAngle(direction);
-
-        // Have a shoot timer that counts up in seconds using deltaTIme
-        this.shootTimer += deltaTime;
-        // If the shoot timer has reached the shoot rate
-        if (this.shootTimer >= this.shootRate) {
-            // Check if the space button was pressed
-            if (Input.GetMouseButtonDown('left')) {
-                // If it was, shoot the bullet
-                this.shoot(direction);
-
-                // Reset the timer
-                this.shootTimer = 0;
-
-                // NOTE: See how shootTimer is inside the keypress if statement and not the timer?
-                // That's because we want to reset the timer AFTER we shoot the weapon.
-            }
-        }
-
-        // Movement in different directions
-        if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
-            this.transform.position.x -= this.speed * deltaTime;
-        }
-        if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
-            this.transform.position.x += this.speed * deltaTime;
-        }
-        if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
-            this.transform.position.y -= this.speed * deltaTime;
-        }
-        if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
-            this.transform.position.y += this.speed * deltaTime;
-        }
-
-        // Clamp the value of the player's movment so that they can 
-        this.transform.position.x = Math.min(Math.max(this.transform.position.x, 0), canvas.width - this.transform.scale);
-        this.transform.position.y = Math.min(Math.max(this.transform.position.y, 0), canvas.height - this.transform.scale);
-    };
-    playerScript.shoot = function (direction)
-    {
-        // Pre-set the bullet's position to the middle of the player 
-        // That way it fires from the center of the player
-        var bulletPosition = new Vector2(this.transform.position.x, this.transform.position.y);
-
-        // Calculate velocity to be the normal of the direction 
-        // from the player to the mouse
-        var mousePos = Input.GetMousePosition();
-
-        // Create a new bullet using the 'Bullet' function
-        var bullet = new BulletPrefab();
-        var bulletScript = bullet.GetComponent('BulletScript');
-        if (bulletScript != null)
-        {
-            bulletScript.transform.position = bulletPosition;
-            bulletScript.transform.rotation = this.transform.rotation;
-            bulletScript.velocity = direction;
-        }
-
-        var fireSound = new Audio("resources/fire.wav");
-        fireSound.play();
-    };
-    return playerScript;
-}
-
-function EnemyManagerScript()
-{
-    var enemyManagerScript = new Component();
-    enemyManagerScript.isVisible = false;
-    enemyManagerScript.spawnRate = 5;
-    enemyManagerScript.spawnTimer = 0;
-    enemyManagerScript.update = function (deltaTime)
-    {
-        this.transform.position.x += 0.4 * deltaTime;
-
-        this.spawnTimer += deltaTime;
-        if (this.spawnTimer >= this.spawnRate) {
-            var randomPos = new Vector2();
-            randomPos.x = random(0, canvas.width);
-            randomPos.y = random(0, canvas.height);
-
-            var enemy = new EnemyPrefab();
-            var enemyScript = enemy.GetComponent('EnemyScript');
-            if (enemyScript != null)
-            {
-                enemyScript.transform.position = randomPos;
-                enemyScript.speed = random(50, 80);
-            }
-
-            this.spawnTimer = 0;
-        }
-    }
-
-    return enemyManagerScript;
-}
-
-function EnemyScript()
-{
-    var enemyScript = new Component();
-    enemyScript.name = "Enemy " + enemyScript.instanceId;
-    enemyScript.speed = 20.0;
-    enemyScript.damage = 1.0;
-    enemyScript.attackRate = 1.0;
-    enemyScript.attackTimer = 0;
-    enemyScript.Start = function ()
-    {
-        enemyScript.transform.scale = 0.4;
-        enemyScript.gameObject.tag = "Enemy";
-    }
-    enemyScript.update = function (deltaTime)
-    {
-        var direction = player.transform.position.Minus(this.transform.position);
-        direction = direction.GetNormal();
-
-        this.rotation = DirectionToAngle(direction);
-
-        this.transform.position.x += direction.x * this.speed * deltaTime;
-        this.transform.position.y += direction.y * this.speed * deltaTime;
-
-        this.attackTimer += deltaTime;
-    }
-    enemyScript.onCollisionStay = function (col)
-    {
-        if (col.gameObject.tag == "Player") {
-            if (this.attackTimer >= this.attackRate) {
-                col.health -= this.damage;
-                this.attackTimer = 0;
-            }
-        }
-    }
-    return enemyScript;
-}
-
-
-function BulletScript()
-{
-    var bulletScript = new Component();
-    bulletScript.speed = 1000.0;
-    bulletScript.velocity = new Vector2();
-    bulletScript.direction = new Vector2(0, 0);
-    bulletScript.Start = function ()
-    {
-        bulletScript.transform.scale = 0.1;
-    }
-    bulletScript.isWithinBounds = function ()
-    {
-        var pos = this.transform.position;
-        if (pos.x >= 0 && pos.x <= canvas.width &&
-            pos.y >= 0 && pos.y <= canvas.height) {
-            return true;
-        }
-
-        CreateExplosion(this.transform.position, 2, 40, "#525252");
-        CreateExplosion(this.transform.position, 2, 60, "#FFA318");
-        return false;
-    };
-    bulletScript.update = function (deltaTime)
-    {
-        this.transform.position.x += this.velocity.x * this.speed * deltaTime;
-        this.transform.position.y += this.velocity.y * this.speed * deltaTime;
-        if (!this.isWithinBounds()) {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
-            Destroy(this.gameObject);
-        }
-    };
-    bulletScript.onCollisionStay = function (col)
-    {
-        if (col.gameObject.tag == "Enemy") {
-            var bulletSound = new Audio("resources/explosion.wav");
-            bulletSound.play();
-            Destroy(col.gameObject);
-            Destroy(this.gameObject);
-            CreateExplosion(col.transform.position, 5, 40, "#525252");
-            CreateExplosion(col.transform.position, 5, 80, "#FFA318");
-        }
-    }
-
-    return bulletScript;
 }
 /*=============================================
 -----------------------------------
@@ -11035,32 +10841,38 @@ var canvas = document.getElementById('GameCanvas');
 // Get the '2d' context from the canvas for drawing
 var context = canvas.getContext('2d');
 
-var prevTime = Date.now();
-var currTime = 0;
-var deltaTime = 0;
-
 // Define the clear color
 var CLEAR_COLOR = "white";
-var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+var canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
+
+var Time = {
+    deltaTime: 0.033,
+    currTime: 0,
+    prevTime: Date.now(),
+    Update: function ()
+    {
+        // Calculate deltaTime
+        this.currTime = Date.now();
+        this.deltaTime = (this.currTime - this.prevTime) / 1000;
+        this.prevTime = this.currTime;
+    }
+}
 
 // Updates all elements in the game
 function UpdateEngine()
 {
-    // Calculate deltaTime
-    currTime = Date.now();
-    deltaTime = (currTime - prevTime) / 1000;
-    prevTime = currTime;
+    Time.Update();
 
     // Automatically scale the canvas dimensions
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+    canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
 
     HandleCollisions();
 
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++) {
-        gameObjects[i].update(deltaTime);
+        gameObjects[i].Update();
     }
 }
 
@@ -11084,17 +10896,9 @@ function DrawEngine()
 {
     // Loop through all game objects and draw each element
     for (var i = 0; i < gameObjects.length; i++) {
-        gameObjects[i].draw();
+        gameObjects[i].Draw();
         Debug.log(gameObjects[i].name);
     }
-}
-function Destroy(gameObject)
-{
-    // If a game object is no longer active, remove it from the list
-    gameObjects = gameObjects.filter(function (object)
-    {
-        return !Object.is(gameObject, object);
-    });
 }
 
 // Helper methods
@@ -11107,21 +10911,32 @@ function random(min, max)
 /*
  * Load all sprites
  */
+var loadedSpriteNum = 0;
 var spriteFolderPath = "resources/sprites/";
-for (var i = 0; i < sprites.length; i++) {
-    var fileName = sprites[i];
-    var image = new Image();
-    image.src = spriteFolderPath + fileName;
-    loadedImages[fileName] = image;
-}
+$(window).ready(function(){
+    for (var i = 0; i < sprites.length; i++) {
+        var fileName = sprites[i];
+        var image = new Image();
+        image.src = spriteFolderPath + fileName;
+        loadedImages[fileName] = image;
+        image.onload = function() {
+            loadedSpriteNum++;
+            if (loadedSpriteNum >= sprites.length) {
+                RunEngine();
+            }
+        }
+    }
+});
 
-$(window).load(function ()
+function RunEngine()
 {
     Start();
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].Start();
     }
+
+    engineInitialized = true;
 
     // Set interval will call the functions at a... set interval (in milliseconds)
     setInterval(function ()
@@ -11141,4 +10956,4 @@ $(window).load(function ()
         DrawEngine();
         Gizmos.Draw();
     }, 1000 / FPS);
-});
+}

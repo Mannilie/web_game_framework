@@ -13,84 +13,33 @@ entity
 var gameObjects = [];
 
 /*
- * Object class
- */
-var instanceId = 0;
-function BaseObject()
-{
-    var objectId = instanceId++;
-    var object =
-    {
-        transform: null,
-        gameObject: null,
-        types: [],
-        instanceId: objectId,
-        name: 'BaseObject ' + this.instanceId,
-        Start: function() {},
-        update: function (deltaTime) { },
-        draw: function () { },
-        onCollisionStay: function (col) {},
-        CompareType: function(type) {
-            for (var i = 0; i < this.types.length; i++) {
-                if (this.types[i] == type) {
-                    return true;
-                }
-            }
-            return false;
-        },
-        ToTypes: function ()
-        {
-            return this.types;
-        }
-    }
-    
-    var currentCaller = arguments.callee;
-    while (currentCaller != null)
-    {
-        var callerName = currentCaller.toString();
-        callerName = callerName.substr('function '.length);
-        callerName = callerName.substr(0, callerName.indexOf('('));
-
-        if (callerName != "")
-        {
-            object.types.push(callerName);
-            currentCaller = currentCaller.caller;
-        } else {
-            currentCaller = null;
-        }
-
-    }
-
-    return object;
-}
-
-function Component()
-{
-    var component = new BaseObject();
-    component.InitializeComponent = function () {}
-    return component;
-}
-
-/*
  * GameObject class 
  */
-function GameObject()
+class GameObject extends BaseObject
 {
-    var gameObject = new BaseObject();
-    gameObject.name = 'GameObject ' + gameObject.instanceId; // to distinguish between gameobjects
-    gameObject.transform = new Transform();
-    gameObject.velocity = new Vector2();
-    gameObject.isActive = true;
-    gameObject.tag = 'untagged',
-    gameObject.layer = 'none',
-    gameObject.components  = [];
-    gameObject.getWidth  = function() {
-        return this.width * this.scale;
-    };
-    gameObject.getHeight = function() {
-        return this.height * this.scale;
-    },
-    gameObject.Start = function ()
+    constructor(other) 
+    {
+        super(other);
+        this.name = other ? other.name : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
+        this.velocity = other ? other.velocity : new Vector();
+        this.isActive = other ? other.isActive : true;
+        this.tag = other ? other.tag : 'untagged';
+        this.layer = other ? other.layer : 'none';
+        this.transform = new Transform();
+        this.gameObject = this;
+
+        this.components = [];
+        if (other && other.components)
+        {
+            for (var i = 0; i < other.components.length; i++)
+            {
+                var component = other.components[i];
+                this.AddComponent(component.constructor);
+            }
+        }
+    }
+   
+    Start()
     {
         this.transform.gameObject = this;
         this.transform.transform = this.transform;
@@ -98,57 +47,68 @@ function GameObject()
             this.components[i].Start();
         }
     }
-    gameObject.update = function (deltaTime)
+    Update()
     {
-        this.transform.update(deltaTime);
+        this.transform.Update();
         //console.log("You must override the 'update' function for " + this.name);
         for (var i = 0; i < this.components.length; i++)
         {
-            this.components[i].update(deltaTime);
+            this.components[i].Update();
         }
-    },
-    gameObject.draw = function ()
+    }
+    Draw()
     {
         if (this.isActive)
         {
             for (var i = 0; i < this.components.length; i++) {
-                this.components[i].draw();
+                this.components[i].Draw();
             }
         }
-    },
-    gameObject.onCollisionStay = function(col) {
+    }
+    OnCollisionStay(col) {
         // Use this function to handle collision response
         for (var i = 0; i < this.components.length; i++) {
-            this.components[i].onCollisionStay(col);
+            this.components[i].OnCollisionStay(col);
         }
-    },
-    gameObject.AddComponent = function (component)
-    {
-        component.gameObject = this;
-        component.transform = this.transform;
-        component.InitializeComponent();
-        component.Start();
-        this.components.push(component);
     }
-    gameObject.GetComponent = function (componentType)
+    AddComponent(componentType)
+    {
+        var newComponent = null;
+        if (componentType.isFunction()) {
+            newComponent = new componentType();
+        } else {
+            newComponent = componentType;
+        }
+        newComponent.gameObject = this;
+        newComponent.transform = this.transform;
+        newComponent.InitializeComponent();
+
+        if (engineInitialized)
+        {
+            newComponent.Start();
+        }
+
+        this.components.push(newComponent);
+        return newComponent;
+    }
+    GetComponent(componentType)
     {
         for (var i = 0; i < this.components.length; i++)
         {
             var component = this.components[i];
-            if (component.CompareType(componentType)) {
+            if (component instanceof componentType)
+            {
                 return this.components[i];
             }
         }
         return null;
     }
-    gameObject.GetComponents = function (componentType)
+    GetComponents(componentType)
     {
         var components = [];
         var isFound = false;
         for (var i = 0; i < this.components.length; i++) {
-            var typeA = componentType;
-            var typeB = this.components[i].ToType();
-            if (typeA == typeB) {
+            if (this.components[i] instanceof componentType) {
                 components.push(this.components[i]);
                 isFound = true;
             }
@@ -158,9 +118,9 @@ function GameObject()
         }
         return null;
     }
-    
-    // Add to gameObjects list
-    gameObjects.push(gameObject);
+}
 
-    return gameObject;
+Object.prototype.isFunction = function() {
+    var getType = {};
+    return this && getType.toString.call(this) === '[object Function]';
 }

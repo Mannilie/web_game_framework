@@ -13,14 +13,15 @@ function Transform()
     var transform = new Component();
     // transform.type.push('Transform');
     transform.parent = null;
-    transform.position = new Vector2();
+    transform.position = new Vector();
     transform.rotation = 0;
     transform.scale = 1.0;
-    transform.update = function (deltaTime)
+    transform.Update = function ()
     {
-        if (this.parent != null) {
-            this.position.Add(transform.parent.position);
-            this.rotation += transform.parent.rotation;
+        if (this.parent != null)
+        {
+            //this.position.Add(transform.parent.position);
+            //this.rotation += transform.parent.rotation;
         }
     }
     return transform;

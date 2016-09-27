@@ -34,7 +34,7 @@ mouseButtons['right'] = 3;
 var Input =
 {
     _keysDown: [],
-    _mousePosition: new Vector2(),
+    _mousePosition: new Vector(),
     _mouseButtonsDown: [],
 
     // Returns the mouse position variable

@@ -7,67 +7,70 @@ Copyright (c) 2016 Emmanuel Vaccaro
 @author: Emmanuel Vaccaro
 @brief: Simulates physics
 ===============================================*/
-
-function Bounds(width, height)
+class Bounds
 {
-    if (width == null) { width = 10; }
-    if (height == null) { height = 10; }
-    var bounds =
+    constructor(width, height)
     {
-        size: { width: width, height: height },
-        extents: new Vector2(),
-        center: new Vector2(),
-        max: new Vector2(),
-        min: new Vector2(),
+        this.width = width || 10;
+        this.height = height || 10;
+        this.size = { width: width, height: height };
+        this.extents = new Vector();
+        this.center = new Vector();
+        this.max = new Vector();
+        this.min = new Vector();
+
+        this.extents = new Vector(this.size.width / 2, this.size.height / 2);
     }
-    bounds.extents = new Vector2(bounds.size.width / 2, bounds.size.height / 2);
-    return bounds;
 }
 
-function Collider()
+class Collider extends Component
 {
-    var collider = new Component();
-   // collider.type.push('Collider');
-    collider.bounds = new Bounds();
-    collider.enabled = true;
-    return collider;
-}
-
-function BoxCollider()
-{
-    var boxCollider = new Collider();
-   // boxCollider.type.push('BoxCollider');
-    boxCollider.size = new Vector2(10, 10);
-    boxCollider.center = new Vector2();
-    boxCollider.InitializeComponent = function ()
+    constructor() 
     {
-        var renderer = this.gameObject.GetComponent('Renderer');
+        super();
+        this.bounds = new Bounds();
+    }
+}
+
+class BoxCollider extends Collider
+{
+    constructor() 
+    {
+        super();
+        this.size = new Vector(10, 10);
+        this.center = new Vector();
+    }
+    Start()
+    {
+        var renderer = this.gameObject.GetComponent(Renderer);
         if (renderer != null) {
-            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            var spriteRenderer = this.gameObject.GetComponent(SpriteRenderer);
             if (spriteRenderer != null) {
                 var width = spriteRenderer.sprite.width;
                 var height = spriteRenderer.sprite.height;
-                this.size = new Vector2(width, height);
+                this.size = new Vector(width, height);
             }
         }
     }
-    boxCollider.update = function (deltaTime)
+    Update()
     {
         Gizmos.AddBox(this.transform.position, this.size.Multiply(this.transform.scale), 0, "green", false);
     }
-    return boxCollider;
 }
 
-function CircleCollider()
+class CircleCollider extends Collider
 {
-    var circleCollider = new Collider();
-    circleCollider.radius = 50.0;
-    circleCollider.center = new Vector2();
-    circleCollider.InitializeComponent = function ()
+    constructor() 
     {
-        var renderer = this.gameObject.GetComponent('Renderer');
+        super();
+        this.radius = 10.0;
+        this.center = new Vector();
+    }
+    Start()
+    {
+        var renderer = this.gameObject.GetComponent(Renderer);
         if (renderer != null) {
-            var spriteRenderer = this.gameObject.GetComponent('SpriteRenderer');
+            var spriteRenderer = this.gameObject.GetComponent(SpriteRenderer);
             if (spriteRenderer != null) {
                 var width = spriteRenderer.sprite.width;
                 var height = spriteRenderer.sprite.height;
@@ -75,11 +78,10 @@ function CircleCollider()
             }
         }
     }
-    circleCollider.update = function (deltaTime)
+    Update()
     {
         Gizmos.AddCircle(this.transform.position, this.radius * this.transform.scale, "green", false);
     }
-    return circleCollider;
 }
 
 function HandleCollisions()
@@ -93,8 +95,8 @@ function HandleCollisions()
             if (gameObjectA != null && gameObjectB != null &&
                 !Object.is(gameObjectA, gameObjectB)) // AND they are not the same
             {
-                var colA = gameObjectA.GetComponent('Collider');
-                var colB = gameObjectB.GetComponent('Collider');
+                var colA = gameObjectA.GetComponent(Collider);
+                var colB = gameObjectB.GetComponent(Collider);
                 // Check if both colliders exist
                 if (colA != null && colB != null &&
                     colA.enabled && colB.enabled) // AND they're both enabled
@@ -102,8 +104,8 @@ function HandleCollisions()
                     // Determine if those objects collide with each other
                     if (Collides(colA, colB)) {
                         // Collision is touching
-                        gameObjectA.onCollisionStay(colB);
-                        gameObjectB.onCollisionStay(colA);
+                        gameObjectA.OnCollisionStay(colB);
+                        gameObjectB.OnCollisionStay(colA);
                     }
                 }
             }
@@ -114,20 +116,20 @@ function HandleCollisions()
 function Collides(colA, colB)
 {
     // Box to Box
-    if(colA.CompareType('BoxCollider') && colB.CompareType('BoxCollider')) 
+    if(colA instanceof BoxCollider && colB instanceof 'BoxCollider') 
     {
         return BoxToBox(colA, colB);
     }
 
     // Box to Circle || Circle to Box
-    if(colA.CompareType('BoxCollider') && colB.CompareType('CircleCollider') || 
-       colB.CompareType('BoxCollider') && colA.CompareType('CircleCollider')) 
+    if(colA instanceof BoxCollider && colB instanceof CircleCollider || 
+       colB instanceof BoxCollider && colA instanceof CircleCollider) 
     {
         return BoxToCircle(colA, colB);
     }
 
     // Circle to Circle
-    if(colA.CompareType('CircleCollider') && colB.CompareType('CircleCollider')) 
+    if(colA instanceof CircleCollider && colB instanceof CircleCollider) 
     {
         return CircleToCircle(colA, colB);
     }
@@ -138,8 +140,12 @@ function Collides(colA, colB)
 
 function BoxToBox(boxA, boxB) 
 {
-    var boxASize = new Vector2(boxA.size.x * boxA.transform.scale, boxA.size.y * boxA.transform.scale);
-    var boxBSize = new Vector2(boxB.size.x * boxB.transform.scale, boxB.size.y * boxB.transform.scale);
+    /// <summary>Determines if two boxes have collided with each other</summary>
+    /// <returns value='1'/>
+    /// <param name="boxA" type="Collider">The first box collider.</param>
+    /// <param name="boxB" type="Collider">The second box collider.</param>
+    var boxASize = new Vector(boxA.size.x * boxA.transform.scale, boxA.size.y * boxA.transform.scale);
+    var boxBSize = new Vector(boxB.size.x * boxB.transform.scale, boxB.size.y * boxB.transform.scale);
     
     if (Math.abs(boxA.transform.position.x - boxB.transform.position.x) < boxASize.x / 2 + boxBSize.x / 2) {
         if (Math.abs(boxA.transform.position.y - boxB.transform.position.y) < boxASize.y / 2 + boxBSize.y / 2) {

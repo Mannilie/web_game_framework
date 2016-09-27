@@ -17,32 +17,38 @@ var canvas = document.getElementById('GameCanvas');
 // Get the '2d' context from the canvas for drawing
 var context = canvas.getContext('2d');
 
-var prevTime = Date.now();
-var currTime = 0;
-var deltaTime = 0;
-
 // Define the clear color
 var CLEAR_COLOR = "white";
-var canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+var canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
+
+var Time = {
+    deltaTime: 0.033,
+    currTime: 0,
+    prevTime: Date.now(),
+    Update: function ()
+    {
+        // Calculate deltaTime
+        this.currTime = Date.now();
+        this.deltaTime = (this.currTime - this.prevTime) / 1000;
+        this.prevTime = this.currTime;
+    }
+}
 
 // Updates all elements in the game
 function UpdateEngine()
 {
-    // Calculate deltaTime
-    currTime = Date.now();
-    deltaTime = (currTime - prevTime) / 1000;
-    prevTime = currTime;
+    Time.Update();
 
     // Automatically scale the canvas dimensions
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    canvasCenter = new Vector2(canvas.width / 2, canvas.height / 2);
+    canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
 
     HandleCollisions();
 
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++) {
-        gameObjects[i].update(deltaTime);
+        gameObjects[i].Update();
     }
 }
 
@@ -66,17 +72,9 @@ function DrawEngine()
 {
     // Loop through all game objects and draw each element
     for (var i = 0; i < gameObjects.length; i++) {
-        gameObjects[i].draw();
+        gameObjects[i].Draw();
         Debug.log(gameObjects[i].name);
     }
-}
-function Destroy(gameObject)
-{
-    // If a game object is no longer active, remove it from the list
-    gameObjects = gameObjects.filter(function (object)
-    {
-        return !Object.is(gameObject, object);
-    });
 }
 
 // Helper methods
@@ -89,21 +87,32 @@ function random(min, max)
 /*
  * Load all sprites
  */
+var loadedSpriteNum = 0;
 var spriteFolderPath = "resources/sprites/";
-for (var i = 0; i < sprites.length; i++) {
-    var fileName = sprites[i];
-    var image = new Image();
-    image.src = spriteFolderPath + fileName;
-    loadedImages[fileName] = image;
-}
+$(window).ready(function(){
+    for (var i = 0; i < sprites.length; i++) {
+        var fileName = sprites[i];
+        var image = new Image();
+        image.src = spriteFolderPath + fileName;
+        loadedImages[fileName] = image;
+        image.onload = function() {
+            loadedSpriteNum++;
+            if (loadedSpriteNum >= sprites.length) {
+                RunEngine();
+            }
+        }
+    }
+});
 
-$(window).load(function ()
+function RunEngine()
 {
     Start();
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].Start();
     }
+
+    engineInitialized = true;
 
     // Set interval will call the functions at a... set interval (in milliseconds)
     setInterval(function ()
@@ -123,4 +132,4 @@ $(window).load(function ()
         DrawEngine();
         Gizmos.Draw();
     }, 1000 / FPS);
-});
+}
