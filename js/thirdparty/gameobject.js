@@ -20,7 +20,7 @@ class GameObject extends BaseObject
     constructor(other) 
     {
         super(other);
-        this.name = other ? other.name : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
+        this.name = other ? (engineInitialized ? "(Clone) " + other.name : other.name) : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
         this.velocity = other ? other.velocity : new Vector();
         this.isActive = other ? other.isActive : true;
         this.tag = other ? other.tag : 'untagged';
@@ -71,8 +71,12 @@ class GameObject extends BaseObject
             this.components[i].OnCollisionStay(col);
         }
     }
+
     AddComponent(componentType)
     {
+        /// <summary>Adds a component class to the game object.</summary>
+        /// <param name="Component" type="T">Component to be added to GameObject.</param>
+        
         var newComponent = null;
         if (componentType.isFunction()) {
             newComponent = new componentType();
@@ -93,6 +97,9 @@ class GameObject extends BaseObject
     }
     GetComponent(componentType)
     {
+        /// <summary>Returns the component of Type type if the game object has one attached, null if it doesn't.</summary>
+        /// <param name="Component" type="T">Component to be obtained.</param>
+
         for (var i = 0; i < this.components.length; i++)
         {
             var component = this.components[i];
@@ -105,6 +112,9 @@ class GameObject extends BaseObject
     }
     GetComponents(componentType)
     {
+        /// <summary>Returns all components of Type type in the GameObject.</summary>
+        /// <param name="Component" type="T">Component to be obtained.</param>
+
         var components = [];
         var isFound = false;
         for (var i = 0; i < this.components.length; i++) {

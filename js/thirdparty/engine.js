@@ -106,7 +106,6 @@ $(window).ready(function(){
 
 function RunEngine()
 {
-    Start();
     // Loop through all game objects and call update on each
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].Start();
@@ -125,8 +124,6 @@ function RunEngine()
         // Set a clear color and create our back buffer
         context.fillStyle = CLEAR_COLOR;
         context.fillRect(0, 0, canvas.width, canvas.height);
-
-        Update();
 
         UpdateEngine();
         DrawEngine();

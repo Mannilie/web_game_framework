@@ -345,7 +345,7 @@ var sprites = [
  * Player GameObject
  */
 var playerPrefab = new GameObject();
-playerPrefab.name = "Player 1";
+playerPrefab.name = "Player";
 playerPrefab.tag = "Player";
 playerPrefab.AddComponent(new SpriteRenderer());
 playerPrefab.AddComponent(new CircleCollider());
@@ -386,16 +386,6 @@ crosshair.AddComponent(CrosshairScript);
 var player = GameObject.Instantiate(playerPrefab);
 var enemyManager = GameObject.Instantiate(enemyManagerPrefab);
 
-// Gets called once upon startup of the engine
-function Start()
-{
-}
-
-// Gets called every frame
-function Update()
-{
-
-}
 /*=============================================
 -----------------------------------
 Copyright (c) 2016 Emmanuel Vaccaro
