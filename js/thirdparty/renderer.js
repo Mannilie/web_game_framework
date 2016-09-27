@@ -12,8 +12,10 @@ class Renderer extends Component {}
 
 class SpriteRenderer extends Renderer
 {
-    constructor(file) 
+    constructor(file)
     {
+        /// <summary>Renders a Sprite for 2D graphics. NOTE: Sprites must be loaded before-hand (i.e, 'sprites[]')</summary>
+        /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         super();
         this.enabled = true;
         this.color = 'blue';
@@ -59,6 +61,8 @@ class Sprite
 {
     constructor(file)
     {
+        /// <summary>Represents a Sprite object for use in 2D gameplay.</summary>
+        /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         this.file = file;
         var loadedImage = loadedImages[this.file];
         if (loadedImage == null) {

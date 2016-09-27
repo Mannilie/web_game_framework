@@ -7,20 +7,25 @@ var sprites = [
 ];
 
 /*
- * Player GameObject
+ * Particle
+ */
+var particlePrefab = new GameObject()
+particlePrefab.AddComponent(new CircleCollider());
+particlePrefab.AddComponent(new ParticleScript());
+
+/*
+ * Player
  */
 var playerPrefab = new GameObject();
 playerPrefab.name = "Player";
 playerPrefab.tag = "Player";
-playerPrefab.AddComponent(new SpriteRenderer());
+playerPrefab.AddComponent(new SpriteRenderer('player.png'));
 playerPrefab.AddComponent(new CircleCollider());
 playerPrefab.AddComponent(new PlayerScript());
 
 /*
  * Bullets
  */
-
-// Bullet object function
 var bulletPrefab = new GameObject();
 bulletPrefab.AddComponent(new SpriteRenderer());
 bulletPrefab.AddComponent(new BulletScript());
@@ -41,12 +46,17 @@ enemyPrefab.name = "Enemy";
 enemyPrefab.tag = "Enemy";
 enemyPrefab.color = "red";
 enemyPrefab.AddComponent(new EnemyScript());
-enemyPrefab.AddComponent(new SpriteRenderer());
+enemyPrefab.AddComponent(new SpriteRenderer('player.png'));
 enemyPrefab.AddComponent(new CircleCollider());
 
+/*
+ * Crosshair
+ */
+var crosshairPrefab = new GameObject();
+crosshairPrefab.AddComponent(CrosshairScript);
 
-var crosshair = new GameObject();
-crosshair.AddComponent(CrosshairScript);
 
+/* Hierarchy */
 var player = GameObject.Instantiate(playerPrefab);
 var enemyManager = GameObject.Instantiate(enemyManagerPrefab);
+var crosshair = GameObject.Instantiate(crosshairPrefab);

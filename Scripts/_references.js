@@ -1,7 +1,5 @@
 ﻿/// <autosync enabled="true" />
-/// <reference path="../js/explosions.js" />
 /// <reference path="../js/main.js" />
-/// <reference path="../js/particle.js" />
 /// <reference path="../js/scene.js" />
 /// <reference path="../js/scripts.js" />
 /// <reference path="../js/thirdparty/baseobject.js" />

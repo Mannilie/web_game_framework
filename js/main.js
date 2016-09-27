@@ -1,26 +1,6 @@
-// COMMENT SUMMARY FOR FUNCTIONS
-/// <summary>Determines if two boxes have collided with each other</summary>
-/// <param name="boxA" type="Collider">The first box collider.</param>
-/// <param name="boxB" type="Collider">The second box collider.</param>
-/// <returns type="Bool">If the boxes intersect.</returns>
-
-// MULTIPLE ARGUMENT COMMENTS
-/// <signature>
-/// <summary>Function summary 1.</summary>
-/// <param name="a" type="Number">A number.</param>
-/// <returns type="Number" />
-/// </signature>
-/// <signature>
-/// <summary>Function summary 2.</summary>
-/// <param name="a" type="String">A string.</param>
-/// <returns type="Number" />
-/// </signature>
-
-
 /*
  * Scripts for GameObjects go here
  */
-
 class PlayerScript extends Component
 {
     constructor() 
@@ -205,8 +185,8 @@ class BulletScript extends Component
             return true;
         }
 
-        CreateExplosion(this.transform.position, 2, 40, "#525252");
-        CreateExplosion(this.transform.position, 2, 60, "#FFA318");
+        this.CreateExplosion(this.transform.position, 2, 40, "#525252");
+        this.CreateExplosion(this.transform.position, 2, 60, "#FFA318");
         return false;
     }
     
@@ -228,12 +208,27 @@ class BulletScript extends Component
             bulletSound.play();
             this.Destroy(col.gameObject);
             this.Destroy(this.gameObject);
-            CreateExplosion(col.transform.position, 5, 40, "#525252");
-            CreateExplosion(col.transform.position, 5, 80, "#FFA318");
+            this.CreateExplosion(col.transform.position, 5, 40, "#525252");
+            this.CreateExplosion(col.transform.position, 5, 80, "#FFA318");
+        }
+    }
+
+    CreateExplosion(position, count, speed, color)
+    {
+        // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
+        for (var i = 0; i < count; i++) {
+            var particle = GameObject.Instantiate(particlePrefab);
+            var particleScript = particle.GetComponent(ParticleScript);
+            particleScript.speed = speed;
+            particleScript.color = color;
+
+            // Particle will start at explosion center
+            particleScript.transform.position = new Vector(position.x, position.y);
+            particleScript.velocity.x = random(-particleScript.speed, particleScript.speed);
+            particleScript.velocity.y = random(-particleScript.speed, particleScript.speed);
         }
     }
 }
-
 
 class ParticleScript extends Component
 {
@@ -342,20 +337,25 @@ var sprites = [
 ];
 
 /*
- * Player GameObject
+ * Particle
+ */
+var particlePrefab = new GameObject()
+particlePrefab.AddComponent(new CircleCollider());
+particlePrefab.AddComponent(new ParticleScript());
+
+/*
+ * Player
  */
 var playerPrefab = new GameObject();
 playerPrefab.name = "Player";
 playerPrefab.tag = "Player";
-playerPrefab.AddComponent(new SpriteRenderer());
+playerPrefab.AddComponent(new SpriteRenderer('player.png'));
 playerPrefab.AddComponent(new CircleCollider());
 playerPrefab.AddComponent(new PlayerScript());
 
 /*
  * Bullets
  */
-
-// Bullet object function
 var bulletPrefab = new GameObject();
 bulletPrefab.AddComponent(new SpriteRenderer());
 bulletPrefab.AddComponent(new BulletScript());
@@ -376,48 +376,17 @@ enemyPrefab.name = "Enemy";
 enemyPrefab.tag = "Enemy";
 enemyPrefab.color = "red";
 enemyPrefab.AddComponent(new EnemyScript());
-enemyPrefab.AddComponent(new SpriteRenderer());
+enemyPrefab.AddComponent(new SpriteRenderer('player.png'));
 enemyPrefab.AddComponent(new CircleCollider());
 
+/*
+ * Crosshair
+ */
+var crosshairPrefab = new GameObject();
+crosshairPrefab.AddComponent(CrosshairScript);
 
-var crosshair = new GameObject();
-crosshair.AddComponent(CrosshairScript);
 
+/* Hierarchy */
 var player = GameObject.Instantiate(playerPrefab);
 var enemyManager = GameObject.Instantiate(enemyManagerPrefab);
-
-/*=============================================
------------------------------------
-Copyright (c) 2016 Emmanuel Vaccaro
------------------------------------
-@file: particle.js
-@date: 25/03/2016
-@author: Emmanuel Vaccaro
-@brief: Defines a particle GameObject
-===============================================*/
-
-var particlePrefab = new GameObject()
-particlePrefab.AddComponent(new CircleCollider());
-particlePrefab.AddComponent(new ParticleScript());
-
-/*
- * Basic explosion, all particles move and shrink at the same speed
- * 
- * Parameter : explosion center position
- */
-function CreateExplosion(position, count, speed, color)
-{
-    // Creating 4 particles that scatter at 0,d 90, 180 & 270 degrees
-    for (var i = 0; i < count; i++)
-    {
-        var particle = GameObject.Instantiate(particlePrefab);
-        var particleScript = particle.GetComponent(ParticleScript);
-        particleScript.speed = speed;
-        particleScript.color = color;
-       
-        // Particle will start at explosion center
-        particleScript.transform.position = new Vector(position.x, position.y);
-        particleScript.velocity.x = random(-particleScript.speed, particleScript.speed);
-        particleScript.velocity.y = random(-particleScript.speed, particleScript.speed);
-    }
-}
+var crosshair = GameObject.Instantiate(crosshairPrefab);

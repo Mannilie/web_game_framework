@@ -19,15 +19,13 @@
   {
     "outputFileName": "js/main.js",
     "inputFiles": [
-   /* 
+      "js/scripts.js",
+      "js/scene.js"
+/* 
       Place new files here e.g:
       "js/script1.js", 
       "js/script2.js",
-   */
-      "js/scripts.js",
-      "js/scene.js",
-      "js/particle.js",
-      "js/explosions.js"
+*/
     ]
   }
 ]

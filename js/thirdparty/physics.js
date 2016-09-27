@@ -36,6 +36,7 @@ class BoxCollider extends Collider
 {
     constructor() 
     {
+        /// <summary>Collider for 2D physics representing an axis-aligned rectangle.</summary>
         super();
         this.size = new Vector(10, 10);
         this.center = new Vector();
@@ -62,6 +63,7 @@ class CircleCollider extends Collider
 {
     constructor() 
     {
+        /// <summary>The Circle Collider class is a collider for use with 2D physics.</summary>
         super();
         this.radius = 10.0;
         this.center = new Vector();

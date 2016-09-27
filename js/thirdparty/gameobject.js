@@ -15,10 +15,34 @@ var gameObjects = [];
 /*
  * GameObject class 
  */
+
+function merge(target)
+{
+    var sources = [].slice.call(arguments, 1);
+    sources.forEach(function (source)
+    {
+        Object.getOwnPropertyNames(source).forEach(function (propName)
+        {
+            Object.defineProperty(target, propName,
+                Object.getOwnPropertyDescriptor(source, propName));
+        });
+    });
+    return target;
+};
+
+function cloneObject(obj)
+{
+    var copy = Object.create(Object.getPrototypeOf(obj));
+    merge(copy, obj);
+    return copy;
+}
+
 class GameObject extends BaseObject
 {
     constructor(other) 
     {
+        /// <summary>Base class for all entities in Unity scenes.</summary>
+        /// <param name="other" type="GameObject">Other GameObject to copy.</param>
         super(other);
         this.name = other ? (engineInitialized ? "(Clone) " + other.name : other.name) : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
         this.velocity = other ? other.velocity : new Vector();
@@ -34,11 +58,12 @@ class GameObject extends BaseObject
             for (var i = 0; i < other.components.length; i++)
             {
                 var component = other.components[i];
-                this.AddComponent(component.constructor);
+                var clone = cloneObject(component);
+                this.AddComponent(clone);
             }
         }
     }
-   
+       
     Start()
     {
         this.transform.gameObject = this;
@@ -85,7 +110,6 @@ class GameObject extends BaseObject
         }
         newComponent.gameObject = this;
         newComponent.transform = this.transform;
-        newComponent.InitializeComponent();
 
         if (engineInitialized)
         {

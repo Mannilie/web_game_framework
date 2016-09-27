@@ -10105,6 +10105,7 @@ BaseObject.Instantiate = function(gameObject)
     /// <summary>Makes a new copy of a GameObject</summary>
     /// <param name="gameObject" type="GameObject">GameObject to be cloned.</param>
     var clone = new GameObject(gameObject);
+    clone = merge(clone);
     gameObjects.push(clone);
     return clone;
 }
@@ -10146,10 +10147,34 @@ var gameObjects = [];
 /*
  * GameObject class 
  */
+
+function merge(target)
+{
+    var sources = [].slice.call(arguments, 1);
+    sources.forEach(function (source)
+    {
+        Object.getOwnPropertyNames(source).forEach(function (propName)
+        {
+            Object.defineProperty(target, propName,
+                Object.getOwnPropertyDescriptor(source, propName));
+        });
+    });
+    return target;
+};
+
+function cloneObject(obj)
+{
+    var copy = Object.create(Object.getPrototypeOf(obj));
+    merge(copy, obj);
+    return copy;
+}
+
 class GameObject extends BaseObject
 {
     constructor(other) 
     {
+        /// <summary>Base class for all entities in Unity scenes.</summary>
+        /// <param name="other" type="GameObject">Other GameObject to copy.</param>
         super(other);
         this.name = other ? (engineInitialized ? "(Clone) " + other.name : other.name) : 'GameObject ' + this.instanceId; // to distinguish between gameobjects
         this.velocity = other ? other.velocity : new Vector();
@@ -10165,11 +10190,12 @@ class GameObject extends BaseObject
             for (var i = 0; i < other.components.length; i++)
             {
                 var component = other.components[i];
-                this.AddComponent(component.constructor);
+                var clone = cloneObject(component);
+                this.AddComponent(clone);
             }
         }
     }
-   
+       
     Start()
     {
         this.transform.gameObject = this;
@@ -10216,7 +10242,6 @@ class GameObject extends BaseObject
         }
         newComponent.gameObject = this;
         newComponent.transform = this.transform;
-        newComponent.InitializeComponent();
 
         if (engineInitialized)
         {
@@ -10575,6 +10600,7 @@ class BoxCollider extends Collider
 {
     constructor() 
     {
+        /// <summary>Collider for 2D physics representing an axis-aligned rectangle.</summary>
         super();
         this.size = new Vector(10, 10);
         this.center = new Vector();
@@ -10601,6 +10627,7 @@ class CircleCollider extends Collider
 {
     constructor() 
     {
+        /// <summary>The Circle Collider class is a collider for use with 2D physics.</summary>
         super();
         this.radius = 10.0;
         this.center = new Vector();
@@ -10725,8 +10752,10 @@ class Renderer extends Component {}
 
 class SpriteRenderer extends Renderer
 {
-    constructor(file) 
+    constructor(file)
     {
+        /// <summary>Renders a Sprite for 2D graphics. NOTE: Sprites must be loaded before-hand (i.e, 'sprites[]')</summary>
+        /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         super();
         this.enabled = true;
         this.color = 'blue';
@@ -10772,6 +10801,8 @@ class Sprite
 {
     constructor(file)
     {
+        /// <summary>Represents a Sprite object for use in 2D gameplay.</summary>
+        /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         this.file = file;
         var loadedImage = loadedImages[this.file];
         if (loadedImage == null) {
