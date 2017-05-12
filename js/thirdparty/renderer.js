@@ -37,7 +37,6 @@ class SpriteRenderer extends Renderer
             // Use this function to draw elements
             context.save();
             context.translate(this.transform.position.x, this.transform.position.y);
-
             context.scale(this.transform.scale, this.transform.scale);
 
             //context.translate(this.position.x, this.position.y);

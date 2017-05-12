@@ -55,7 +55,7 @@ class BoxCollider extends Collider
     }
     Update()
     {
-        Gizmos.AddBox(this.transform.position, this.size.Multiply(this.transform.scale), 0, "green", false);
+        Gizmos.AddBox(this.transform.position, this.size.multiply(this.transform.scale), 0, "green", false);
     }
 }
 
@@ -118,7 +118,7 @@ function HandleCollisions()
 function Collides(colA, colB)
 {
     // Box to Box
-    if(colA instanceof BoxCollider && colB instanceof 'BoxCollider') 
+    if(colA instanceof BoxCollider && colB instanceof BoxCollider) 
     {
         return BoxToBox(colA, colB);
     }
@@ -159,7 +159,6 @@ function BoxToBox(boxA, boxB)
 
 function CircleToCircle(circleA, circleB) 
 {
-    // NEEDS IMPLEMENTATION
     var a = circleA.transform.position.x - circleB.transform.position.x;
     var b = circleA.transform.position.y - circleB.transform.position.y;
     var distance = Math.sqrt(a * a + b * b);
@@ -171,6 +170,7 @@ function CircleToCircle(circleA, circleB)
 
 function BoxToCircle(box, circle) 
 {
+    //var deltaX = circle.transform.position.x - Math.max(box.transform.position.x, )
     // NEEDS IMPLEMENTATION
     return false;
 }

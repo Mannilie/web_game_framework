@@ -15,7 +15,7 @@ class PlayerScript extends Component
     Start()
     {
         this.gameObject.tag = "Player";
-        this.transform.scale = 0.4;
+        this.transform.scale = 0.6;
     }
     Update()
     {
@@ -237,16 +237,14 @@ class ParticleScript extends Component
         super();
 
         this.radius = 20;
-        this.velocity = new Vector(0, 0);
         this.scaleSpeed = 1;
         this.speed = 100.0;
         this.color = "black";
     }
     Start()
     {
-        this.transform.scale = 1.0;
-        var circleCollider = this.gameObject.GetComponent(CircleCollider);
-        circleCollider.radius = this.radius;
+      this.transform.scale = 1.0;
+      this.velocity = new Vector(0, 0);
     }
     Update()
     {
@@ -256,7 +254,7 @@ class ParticleScript extends Component
         if (this.transform.scale <= 0) {
             this.Destroy(this.gameObject);
         }
-
+        
         // Moving away from explosion center
         this.transform.position.x += this.velocity.x * Time.deltaTime;
         this.transform.position.y += this.velocity.y * Time.deltaTime;
@@ -265,19 +263,14 @@ class ParticleScript extends Component
     {
         // translating the particle's coordinates
         context.save();
-        // drawing a filled circle in the particle's local space
         context.translate(this.transform.position.x, this.transform.position.y);
-
-        // scaling particle
         context.scale(this.transform.scale, this.transform.scale);
 
-        context.fillStyle = this.color;
-
         context.beginPath();
+        context.fillStyle = this.color;
         context.arc(0, 0, this.radius, 0, Math.PI * 2, true);
-        context.closePath();
-
         context.fill();
+        context.closePath();
 
         context.restore();
     }

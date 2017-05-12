@@ -23,26 +23,11 @@ class BaseObject
         this.name = 'BaseObject ' + this.instanceId;
     }
 
-    Start()
-    {
+    Start() {}
+    Update() {}
+    Draw() {}
 
-    }
-
-    update(deltaTime)
-    {
-
-    }
-
-    Draw()
-    {
-
-    }
-
-    
-    OnCollisionStay(col)
-    {
-
-    }
+    OnCollisionStay(col) {}
 
     Instantiate(gameObject)
     {
