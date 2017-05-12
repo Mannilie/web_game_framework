@@ -10105,7 +10105,6 @@ BaseObject.Instantiate = function(gameObject)
     /// <summary>Makes a new copy of a GameObject</summary>
     /// <param name="gameObject" type="GameObject">GameObject to be cloned.</param>
     var clone = new GameObject(gameObject);
-    clone = merge(clone);
     gameObjects.push(clone);
     return clone;
 }
@@ -10446,15 +10445,82 @@ Copyright (c) 2016 Emmanuel Vaccaro
 
 // Dictionary of keycodes
 var keys = {};
+keys['escape'] = 27;
+keys['f1'] = 112;
+keys['f2'] = 113;
+keys['f3'] = 114;
+keys['f4'] = 115;
+keys['f5'] = 116;
+keys['f6'] = 117;
+keys['f7'] = 118;
+keys['f8'] = 119;
+keys['f9'] = 120;
+keys['f10'] = 121;
+keys['f11'] = 122;
+keys['f12'] = 123;
+keys['altGr'] = 192;
+keys['1'] = 49;
+keys['2'] = 50;
+keys['3'] = 51;
+keys['4'] = 52;
+keys['5'] = 53;
+keys['6'] = 54;
+keys['7'] = 55;
+keys['8'] = 56;
+keys['9'] = 57;
+keys['0'] = 48;
+keys['-'] = 189;
+keys['='] = 187;
+keys['backspace'] = 8;
+keys['tab'] = 9;
+keys['q'] = 81;
 keys['w'] = 87;
+keys['e'] = 69;
+keys['r'] = 82;
+keys['t'] = 84;
+keys['y'] = 89;
+keys['u'] = 85;
+keys['i'] = 73;
+keys['o'] = 79;
+keys['p'] = 80;
+keys['['] = 219;
+keys[']'] = 221;
+keys['backslash'] = 220;
+keys['\\'] = 220;
+keys['capslock'] = 20;
 keys['a'] = 65;
 keys['s'] = 83;
 keys['d'] = 68;
-keys['space'] = 32;
-keys['left'] = 37;
-keys['up'] = 38;
-keys['right'] = 39;
-keys['down'] = 40;
+keys['f'] = 70;
+keys['g'] = 71;
+keys['h'] = 72;
+keys['j'] = 74;
+keys['k'] = 75;
+keys['l'] = 76;
+keys[';'] = 186;
+keys["'"] = 222;
+keys["enter"] = 13;
+keys["leftshift"] = 16;
+keys["z"] = 90;
+keys["x"] = 88;
+keys["c"] = 67;
+keys["v"] = 86;
+keys["b"] = 66;
+keys["n"] = 78;
+keys["m"] = 77;
+keys[","] = 188;
+keys["."] = 190;
+keys["/"] = 191;
+keys["rightshift"] = 16;
+keys["leftctrl"] = 17;
+keys["leftalt"] = 18;
+keys["space"] = 32;
+keys["rightalt"] = 18;
+keys["rightctrl"] = 17;
+keys["up"] = 38;
+keys["down"] = 40;
+keys["left"] = 37;
+keys["right"] = 39;
 
 // >> Add more KeyCodes here <<
 
