@@ -5,7 +5,5 @@
         super();
         this.enabled = true;
     }
-    InitializeComponent()
-    {
-    }
+    InitializeComponent() {}
 }

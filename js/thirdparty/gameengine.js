@@ -10110,9 +10110,7 @@ class Component extends BaseObject
         super();
         this.enabled = true;
     }
-    InitializeComponent()
-    {
-    }
+    InitializeComponent() {}
 }
 /*=============================================
 -----------------------------------
@@ -10803,13 +10801,14 @@ class Renderer extends Component {}
 
 class SpriteRenderer extends Renderer
 {
-    constructor(file)
+    constructor(file, depth)
     {
         /// <summary>Renders a Sprite for 2D graphics. NOTE: Sprites must be loaded before-hand (i.e, 'sprites[]')</summary>
         /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         super();
         this.enabled = true;
         this.color = 'blue';
+        this.depth = depth ? depth : 0;
         this.sprite = new Sprite(file);
     }
     Start()
@@ -10982,9 +10981,24 @@ var Debug = {
     }
 }
 
+function SortGameObjects()
+{
+    gameObjects = gameObjects.sort(function (goA, goB)
+    {
+        var rendererA = goA.GetComponent(SpriteRenderer);
+        var rendererB = goB.GetComponent(SpriteRenderer);
+        if (rendererA != undefined && rendererA != null &&
+           rendererB != undefined && rendererB != null) {
+            return rendererB.depth - rendererA.depth;
+        }
+        return 1;
+    });
+}
+
 // Draws all elements to the screen
 function DrawEngine()
 {
+    SortGameObjects();
     // Loop through all game objects and draw each element
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].Draw();

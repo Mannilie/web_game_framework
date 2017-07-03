@@ -12,13 +12,14 @@ class Renderer extends Component {}
 
 class SpriteRenderer extends Renderer
 {
-    constructor(file)
+    constructor(file, depth)
     {
         /// <summary>Renders a Sprite for 2D graphics. NOTE: Sprites must be loaded before-hand (i.e, 'sprites[]')</summary>
         /// <param name="file" optional="true" type="GameObject">File name of sprite</param>
         super();
         this.enabled = true;
         this.color = 'blue';
+        this.depth = depth ? depth : 0;
         this.sprite = new Sprite(file);
     }
     Start()

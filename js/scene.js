@@ -3,6 +3,7 @@
  */
 var sprites = [
     'default.png',
+    'laser.png',
     'player.png'
 ];
 
@@ -26,7 +27,7 @@ playerPrefab.AddComponent(new PlayerScript());
  * Bullets
  */
 var bulletPrefab = new GameObject();
-bulletPrefab.AddComponent(new SpriteRenderer());
+bulletPrefab.AddComponent(new SpriteRenderer('default.png', 100));
 bulletPrefab.AddComponent(new BulletScript());
 bulletPrefab.AddComponent(new BoxCollider());
 

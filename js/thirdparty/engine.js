@@ -67,9 +67,24 @@ var Debug = {
     }
 }
 
+function SortGameObjects()
+{
+    gameObjects = gameObjects.sort(function (goA, goB)
+    {
+        var rendererA = goA.GetComponent(SpriteRenderer);
+        var rendererB = goB.GetComponent(SpriteRenderer);
+        if (rendererA != undefined && rendererA != null &&
+           rendererB != undefined && rendererB != null) {
+            return rendererB.depth - rendererA.depth;
+        }
+        return -1;
+    });
+}
+
 // Draws all elements to the screen
 function DrawEngine()
 {
+    SortGameObjects();
     // Loop through all game objects and draw each element
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].Draw();
