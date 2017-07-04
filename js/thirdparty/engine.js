@@ -19,9 +19,6 @@ var context = canvas.getContext('2d');
 
 // Define the clear color
 var CLEAR_COLOR = "white";
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 var canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
 
 var Time = {
@@ -146,6 +143,5 @@ function RunEngine()
         UpdateEngine();
         DrawEngine();
         Gizmos.Draw();
-        Input.Update();
     }, 1000 / FPS);
 }

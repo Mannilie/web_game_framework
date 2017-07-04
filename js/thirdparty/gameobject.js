@@ -90,24 +90,10 @@ class GameObject extends BaseObject
             }
         }
     }
-    OnCollisionEnter(col) {
-        // Use this function to handle collision response
-        for (var i = 0; i < this.components.length; i++) {
-            this.components[i].OnCollisionEnter(col);
-        }
-    }
-    OnCollisionStay(col)
-    {
+    OnCollisionStay(col) {
         // Use this function to handle collision response
         for (var i = 0; i < this.components.length; i++) {
             this.components[i].OnCollisionStay(col);
-        }
-    }
-    OnCollisionExit(col)
-    {
-        // Use this function to handle collision response
-        for (var i = 0; i < this.components.length; i++) {
-            this.components[i].OnCollisionExit(col);
         }
     }
 
@@ -115,6 +101,7 @@ class GameObject extends BaseObject
     {
         /// <summary>Adds a component class to the game object.</summary>
         /// <param name="Component" type="T">Component to be added to GameObject.</param>
+        
         var newComponent = null;
         if (componentType.isFunction()) {
             newComponent = new componentType();

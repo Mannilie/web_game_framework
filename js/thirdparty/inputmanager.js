@@ -100,8 +100,6 @@ mouseButtons['right'] = 3;
 // Input object that handles input throughout the project
 var Input =
 {
-    _keysUp: [],
-    _keysPressed: [],
     _keysDown: [],
     _mousePosition: new Vector(),
     _mouseButtonsDown: [],
@@ -129,25 +127,6 @@ var Input =
         return false;
     },
 
-    GetKey: function (keyName)
-    {
-        // Try and obtain the keycode from the list of keys defined
-        var findKeyCode = keys[keyName];
-        // Check if the keycode exists in the list
-        if (findKeyCode != undefined) {
-            // Check if the key is in the list of keys down
-            if (this._keysPressed.includes(findKeyCode)) {
-                // The key is down!
-                return true;
-            }
-        } else {
-            // Print error message otherwise
-            console.error("The key name '" + keyName + "' is not defined inside of 'keys'");
-        }
-        // The key is NOT down
-        return false;
-    },
-
     // Function that checks if a key is down and returns true/false
     GetKeyDown: function (keyName)
     {
@@ -166,11 +145,6 @@ var Input =
         }
         // The key is NOT down
         return false;
-    },
-
-    Update: function ()
-    {
-        this._keysDown = [];
     }
 }
 
@@ -208,18 +182,13 @@ $(document).keydown(function (event)
 {
     // Push the key that is down onto list
     Input._keysDown.push(event.keyCode);
-    Input._keysPressed.push(event.keyCode);
 });
 
 // Add a keyup event to test for keys that are up
 $(document).keyup(function (event)
 {
-    Input._keysDown = Input._keysDown.filter(function (keyCode)
-    {
-        return keyCode != event.keyCode;
-    });
     // Remove the key that is up from the keysDown list
-    Input._keysPressed = Input._keysPressed.filter(function (keyCode)
+    Input._keysDown = Input._keysDown.filter(function (keyCode)
     {
         return keyCode != event.keyCode;
     });
