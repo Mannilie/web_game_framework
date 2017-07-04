@@ -30,6 +30,18 @@ class Collider extends Component
         super();
         this.bounds = new Bounds();
     }
+    OnCollisionEnter(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
+    OnCollisionStay(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
+    OnCollisionExit(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
 }
 
 class BoxCollider extends Collider
@@ -86,6 +98,8 @@ class CircleCollider extends Collider
     }
 }
 
+var collisions = {};
+
 function HandleCollisions()
 {
     for (var x = 0; x < gameObjects.length; x++) {
@@ -101,13 +115,33 @@ function HandleCollisions()
                 var colB = gameObjectB.GetComponent(Collider);
                 // Check if both colliders exist
                 if (colA != null && colB != null &&
+                    colA.instanceId != colB.instanceId &&
                     colA.enabled && colB.enabled) // AND they're both enabled
                 {
                     // Determine if those objects collide with each other
-                    if (Collides(colA, colB)) {
+                    if (Collides(colA, colB))
+                    {
+                        if (collisions[colA.instanceId] == undefined &&
+                            collisions[colB.instanceId] == undefined)
+                        {
+                            gameObjectA.OnCollisionEnter(colB);
+                            gameObjectB.OnCollisionEnter(colA);
+                            collisions[colA.instanceId] = colA.instanceId;
+                            collisions[colB.instanceId] = colB.instanceId;
+                        }
+                        
                         // Collision is touching
                         gameObjectA.OnCollisionStay(colB);
                         gameObjectB.OnCollisionStay(colA);
+                    } else {
+                        if (collisions[colA.instanceId] != undefined &&
+                            collisions[colB.instanceId] != undefined)
+                        {
+                            gameObjectA.OnCollisionExit(colB);
+                            gameObjectB.OnCollisionExit(colA);
+                            collisions[colA.instanceId] = undefined;
+                            collisions[colB.instanceId] = undefined;
+                        }
                     }
                 }
             }

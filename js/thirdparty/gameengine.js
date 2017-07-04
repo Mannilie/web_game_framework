@@ -10110,6 +10110,18 @@ class Component extends BaseObject
         super();
         this.enabled = true;
     }
+    OnCollisionEnter(col)
+    {
+
+    }
+    OnCollisionStay(col)
+    {
+
+    }
+    OnCollisionExit(col)
+    {
+
+    }
     InitializeComponent() {}
 }
 /*=============================================
@@ -10204,10 +10216,24 @@ class GameObject extends BaseObject
             }
         }
     }
-    OnCollisionStay(col) {
+    OnCollisionEnter(col) {
+        // Use this function to handle collision response
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].OnCollisionEnter(col);
+        }
+    }
+    OnCollisionStay(col)
+    {
         // Use this function to handle collision response
         for (var i = 0; i < this.components.length; i++) {
             this.components[i].OnCollisionStay(col);
+        }
+    }
+    OnCollisionExit(col)
+    {
+        // Use this function to handle collision response
+        for (var i = 0; i < this.components.length; i++) {
+            this.components[i].OnCollisionExit(col);
         }
     }
 
@@ -10215,7 +10241,6 @@ class GameObject extends BaseObject
     {
         /// <summary>Adds a component class to the game object.</summary>
         /// <param name="Component" type="T">Component to be added to GameObject.</param>
-        
         var newComponent = null;
         if (componentType.isFunction()) {
             newComponent = new componentType();
@@ -10518,6 +10543,8 @@ mouseButtons['right'] = 3;
 // Input object that handles input throughout the project
 var Input =
 {
+    _keysUp: [],
+    _keysPressed: [],
     _keysDown: [],
     _mousePosition: new Vector(),
     _mouseButtonsDown: [],
@@ -10545,6 +10572,25 @@ var Input =
         return false;
     },
 
+    GetKey: function (keyName)
+    {
+        // Try and obtain the keycode from the list of keys defined
+        var findKeyCode = keys[keyName];
+        // Check if the keycode exists in the list
+        if (findKeyCode != undefined) {
+            // Check if the key is in the list of keys down
+            if (this._keysPressed.includes(findKeyCode)) {
+                // The key is down!
+                return true;
+            }
+        } else {
+            // Print error message otherwise
+            console.error("The key name '" + keyName + "' is not defined inside of 'keys'");
+        }
+        // The key is NOT down
+        return false;
+    },
+
     // Function that checks if a key is down and returns true/false
     GetKeyDown: function (keyName)
     {
@@ -10563,6 +10609,11 @@ var Input =
         }
         // The key is NOT down
         return false;
+    },
+
+    Update: function ()
+    {
+        this._keysDown = [];
     }
 }
 
@@ -10600,13 +10651,18 @@ $(document).keydown(function (event)
 {
     // Push the key that is down onto list
     Input._keysDown.push(event.keyCode);
+    Input._keysPressed.push(event.keyCode);
 });
 
 // Add a keyup event to test for keys that are up
 $(document).keyup(function (event)
 {
-    // Remove the key that is up from the keysDown list
     Input._keysDown = Input._keysDown.filter(function (keyCode)
+    {
+        return keyCode != event.keyCode;
+    });
+    // Remove the key that is up from the keysDown list
+    Input._keysPressed = Input._keysPressed.filter(function (keyCode)
     {
         return keyCode != event.keyCode;
     });
@@ -10642,6 +10698,18 @@ class Collider extends Component
     {
         super();
         this.bounds = new Bounds();
+    }
+    OnCollisionEnter(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
+    OnCollisionStay(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
+    OnCollisionExit(collidedObject)
+    {
+        // Use this function to handle collision response
     }
 }
 
@@ -10699,6 +10767,8 @@ class CircleCollider extends Collider
     }
 }
 
+var collisions = {};
+
 function HandleCollisions()
 {
     for (var x = 0; x < gameObjects.length; x++) {
@@ -10714,13 +10784,33 @@ function HandleCollisions()
                 var colB = gameObjectB.GetComponent(Collider);
                 // Check if both colliders exist
                 if (colA != null && colB != null &&
+                    colA.instanceId != colB.instanceId &&
                     colA.enabled && colB.enabled) // AND they're both enabled
                 {
                     // Determine if those objects collide with each other
-                    if (Collides(colA, colB)) {
+                    if (Collides(colA, colB))
+                    {
+                        if (collisions[colA.instanceId] == undefined &&
+                            collisions[colB.instanceId] == undefined)
+                        {
+                            gameObjectA.OnCollisionEnter(colB);
+                            gameObjectB.OnCollisionEnter(colA);
+                            collisions[colA.instanceId] = colA.instanceId;
+                            collisions[colB.instanceId] = colB.instanceId;
+                        }
+                        
                         // Collision is touching
                         gameObjectA.OnCollisionStay(colB);
                         gameObjectB.OnCollisionStay(colA);
+                    } else {
+                        if (collisions[colA.instanceId] != undefined &&
+                            collisions[colB.instanceId] != undefined)
+                        {
+                            gameObjectA.OnCollisionExit(colB);
+                            gameObjectB.OnCollisionExit(colA);
+                            collisions[colA.instanceId] = undefined;
+                            collisions[colB.instanceId] = undefined;
+                        }
                     }
                 }
             }
@@ -10838,7 +10928,15 @@ class SpriteRenderer extends Renderer
             context.restore();
         }
     }
+    OnCollisionEnter(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
     OnCollisionStay(collidedObject)
+    {
+        // Use this function to handle collision response
+    }
+    OnCollisionExit(collidedObject)
     {
         // Use this function to handle collision response
     }
@@ -10933,6 +11031,9 @@ var context = canvas.getContext('2d');
 
 // Define the clear color
 var CLEAR_COLOR = "white";
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 var canvasCenter = new Vector(canvas.width / 2, canvas.height / 2);
 
 var Time = {
@@ -10991,7 +11092,7 @@ function SortGameObjects()
            rendererB != undefined && rendererB != null) {
             return rendererB.depth - rendererA.depth;
         }
-        return 1;
+        return -1;
     });
 }
 
@@ -11057,5 +11158,6 @@ function RunEngine()
         UpdateEngine();
         DrawEngine();
         Gizmos.Draw();
+        Input.Update();
     }, 1000 / FPS);
 }
