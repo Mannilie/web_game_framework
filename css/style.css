@@ -34,4 +34,6 @@ ul
     left: 0;
     list-style-type: decimal;
     font-family: 'Comic Sans MS';
+    font-size: 500%;
+    color: yellow;
 }
