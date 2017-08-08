@@ -27,7 +27,6 @@ class PlayerScript extends Component
 
         var max = Vector.max(direction, mousePos);
 
-        // Have a shoot timer that counts up in seconds using deltaTIme
         this.shootTimer += Time.deltaTime;
         // If the shoot timer has reached the shoot rate
         if (this.shootTimer >= this.shootRate) {
