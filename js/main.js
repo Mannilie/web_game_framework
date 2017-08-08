@@ -1,6 +1,9 @@
 /*
  * Scripts for GameObjects go here
  */
+
+    //Cool kids use egyptian bracers
+
 class PlayerScript extends Component
 {
     constructor() 
