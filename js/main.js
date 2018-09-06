@@ -6,7 +6,6 @@ class PlayerScript extends Component
     constructor() 
     {
         super();
-        
         this.speed = 200;
         this.shootRate = 0.1;
         this.shootTimer = 0;
