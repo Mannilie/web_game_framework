@@ -45,16 +45,16 @@ class PlayerScript extends Component
         }
 
         // Movement in different directions
-        if (Input.GetKey('left') || Input.GetKey('a')) {
+        if (Input.GetKeyDown('left') || Input.GetKeyDown('a')) {
             this.transform.position.x -= this.speed * Time.deltaTime;
         }
-        if (Input.GetKey('right') || Input.GetKey('d')) {
+        if (Input.GetKeyDown('right') || Input.GetKeyDown('d')) {
             this.transform.position.x += this.speed * Time.deltaTime;
         }
-        if (Input.GetKey('up') || Input.GetKey('w')) {
+        if (Input.GetKeyDown('up') || Input.GetKeyDown('w')) {
             this.transform.position.y -= this.speed * Time.deltaTime;
         }
-        if (Input.GetKey('down') || Input.GetKey('s')) {
+        if (Input.GetKeyDown('down') || Input.GetKeyDown('s')) {
             this.transform.position.y += this.speed * Time.deltaTime;
         }
 
@@ -84,10 +84,6 @@ class PlayerScript extends Component
 
         var fireSound = new Audio("resources/sounds/fire.wav");
         fireSound.play();
-    }
-    OnCollisionEnter(col)
-    {
-        console.log(col.name + " has collided with " + this.name);
     }
 }
 

@@ -49,15 +49,7 @@ class SpriteRenderer extends Renderer
             context.restore();
         }
     }
-    OnCollisionEnter(collidedObject)
-    {
-        // Use this function to handle collision response
-    }
     OnCollisionStay(collidedObject)
-    {
-        // Use this function to handle collision response
-    }
-    OnCollisionExit(collidedObject)
     {
         // Use this function to handle collision response
     }
