@@ -7,8 +7,13 @@ class PlayerScript extends Component
     {
         super();
         
-        this.speed = 200;
-        this.shootRate = 0.1;
+        //this.speed = 200;
+        //this.shootRate = 0.1;
+        //this.shootTimer = 0;
+        //this.health = 100;
+		
+		this.speed = 2000;
+        this.shootRate = 0.9;
         this.shootTimer = 0;
         this.health = 100;
     }
