@@ -1,5 +1,5 @@
 /*
- * Sprites
+ * Your Looks
  */
 var sprites = [
     'default.png',
@@ -8,13 +8,13 @@ var sprites = [
 ];
 
 /*
- * Particle
+ * Sparkles
  */
 var particlePrefab = new GameObject()
 particlePrefab.AddComponent(new ParticleScript());
 
 /*
- * Player
+ * You
  */
 var playerPrefab = new GameObject();
 playerPrefab.name = "Player";
@@ -24,7 +24,7 @@ playerPrefab.AddComponent(new BoxCollider());
 playerPrefab.AddComponent(new PlayerScript());
 
 /*
- * Bullets
+ * Shooty Things
  */
 var bulletPrefab = new GameObject();
 bulletPrefab.AddComponent(new SpriteRenderer('default.png', 100));
@@ -32,14 +32,14 @@ bulletPrefab.AddComponent(new BulletScript());
 bulletPrefab.AddComponent(new BoxCollider());
 
 /*
- * Enemy Manager
+ * Your Boss
  */
 var enemyManagerPrefab = new GameObject();
 enemyManagerPrefab.name = "Enemy Manager";
 enemyManagerPrefab.AddComponent(new EnemyManagerScript());
 
 /*
- * Enemy GameObject
+ * Your Co-Worker
  */
 var enemyPrefab = new GameObject();
 enemyPrefab.name = "Enemy";
@@ -50,13 +50,13 @@ enemyPrefab.AddComponent(new SpriteRenderer('player.png'));
 enemyPrefab.AddComponent(new BoxCollider());
 
 /*
- * Crosshair
+ * How You See Things
  */
 var crosshairPrefab = new GameObject();
 crosshairPrefab.AddComponent(CrosshairScript);
 
 
-/* Hierarchy */
+/* Your Position */
 var player = GameObject.Instantiate(playerPrefab);
 var enemyManager = GameObject.Instantiate(enemyManagerPrefab);
 var crosshair = GameObject.Instantiate(crosshairPrefab);
